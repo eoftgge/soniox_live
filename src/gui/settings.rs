@@ -3,7 +3,10 @@ use crate::settings::SettingsApp;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::LEVELS;
-use eframe::egui::{self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2, Checkbox};
+use eframe::egui::{
+    self, Button, Checkbox, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider,
+    TextEdit, Ui, vec2,
+};
 use egui_notify::Toasts;
 use std::time::Duration;
 
@@ -99,7 +102,8 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                 ui.end_row();
 
                 ui.label("Log to file");
-                ui.add(Checkbox::without_text(&mut settings.log_to_file)).on_hover_text("Allow logs to be added to the file");
+                ui.add(Checkbox::without_text(&mut settings.log_to_file))
+                    .on_hover_text("Allow logs to be added to the file");
                 ui.end_row();
 
                 ui.label("Output Device:");
@@ -164,11 +168,7 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
                 ui.add(egui::Label::new("Translation:").extend());
                 ui.checkbox(&mut settings.enable_translate, "Enable");
                 if settings.enable_translate {
-                    ui_language_searchable_combo(
-                        ui,
-                        "target_lang",
-                        &mut settings.target_language,
-                    );
+                    ui_language_searchable_combo(ui, "target_lang", &mut settings.target_language);
                 }
                 ui.end_row();
 
@@ -188,8 +188,16 @@ fn ui_section_position(ui: &mut Ui, ctx: &Context, settings: &mut SettingsApp) {
         Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut settings.offset.0).speed(1.0).prefix("X: "));
-                ui.add(DragValue::new(&mut settings.offset.1).speed(1.0).prefix("Y: "));
+                ui.add(
+                    DragValue::new(&mut settings.offset.0)
+                        .speed(1.0)
+                        .prefix("X: "),
+                );
+                ui.add(
+                    DragValue::new(&mut settings.offset.1)
+                        .speed(1.0)
+                        .prefix("Y: "),
+                );
             });
             ui.end_row();
 

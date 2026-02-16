@@ -3,10 +3,10 @@ use crate::types::device::SettingDeviceId;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::TracingLevel;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
+use eframe::epaint::Rgba;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
-use eframe::epaint::Rgba;
 use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -44,7 +44,7 @@ impl Default for SettingsApp {
             anchor: 7,
             font_size: 18,
             background_color: [0., 0., 0., 0.], // transparent
-            text_color: [255., 255., 0.], // yellow
+            text_color: [255., 255., 0.],       // yellow
             max_blocks: 3,
             device_id: None,
             log_to_file: false,
