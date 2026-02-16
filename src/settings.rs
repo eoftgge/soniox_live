@@ -1,5 +1,7 @@
 use crate::errors::SonioxLiveErrors;
 use crate::types::languages::LanguageHint;
+use crate::types::device::ConfigDeviceId;
+use crate::transcription::utils::get_default_device;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -23,6 +25,7 @@ pub struct SettingsApp {
     pub(crate) font_size: usize,
     pub(crate) text_color: (u8, u8, u8),
     pub(crate) max_blocks: usize,
+    pub(crate) device: ConfigDeviceId,
 }
 
 impl Default for SettingsApp {
@@ -42,6 +45,7 @@ impl Default for SettingsApp {
             font_size: 18,
             text_color: (255, 255, 0), // yellow
             max_blocks: 3,
+            device: ConfigDeviceId::new(get_default_device()),
         }
     }
 }
@@ -95,6 +99,10 @@ impl SettingsApp {
 
     pub fn max_blocks(&self) -> usize {
         self.max_blocks
+    }
+
+    pub fn device(&self) -> &ConfigDeviceId {
+        &self.device
     }
 
     pub fn level(&self) -> Result<LevelFilter, SonioxLiveErrors> {
