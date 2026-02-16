@@ -3,7 +3,7 @@
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::icon_data::from_png_bytes;
 use soniox_live::errors::SonioxLiveErrors;
-use soniox_live::gui::font::setup_custom_fonts;
+use soniox_live::gui::fonts::setup_custom_fonts;
 use soniox_live::settings::SettingsApp;
 use soniox_live::{ICON_BYTES, initialize_app};
 
