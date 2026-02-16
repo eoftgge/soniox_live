@@ -4,6 +4,7 @@ use crate::gui::state::{AppState, StateManager};
 use crate::settings::SettingsApp;
 use crate::transcription::service::TranscriptionService;
 use crate::transcription::store::TranscriptionStore;
+use crate::types::device::MappableAvailableDevices;
 use crate::types::events::SonioxEvent;
 use eframe::egui::{
     Align, Area, Context, Id, Layout, Order, ViewportCommand, Visuals, WindowLevel,
@@ -12,7 +13,6 @@ use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
-use crate::types::device::MappableAvailableDevices;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -75,13 +75,22 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn update(&mut self, ctx: &Context, _: &mut Frame) {
-        if let Err(err) = self.manager.resolve(ctx, &mut self.store, &self.settings, &self.devices) {
+        if let Err(err) = self
+            .manager
+            .resolve(ctx, &mut self.store, &self.settings, &self.devices)
+        {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
         let manager = &mut self.manager;
 
         match manager.app_state_mut() {
-            AppState::Config => show_settings_window(ctx, &mut self.settings, manager, &mut self.toasts, &mut self.devices),
+            AppState::Config => show_settings_window(
+                ctx,
+                &mut self.settings,
+                manager,
+                &mut self.toasts,
+                &mut self.devices,
+            ),
             AppState::Overlay(service) => {
                 let timeout = Duration::from_secs(15);
                 let ctx_for_plan = ctx.clone();

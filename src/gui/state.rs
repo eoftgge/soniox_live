@@ -2,8 +2,8 @@ use crate::errors::SonioxLiveErrors;
 use crate::settings::SettingsApp;
 use crate::transcription::service::TranscriptionService;
 use crate::transcription::store::TranscriptionStore;
-use eframe::egui::{Context, ViewportCommand, WindowLevel};
 use crate::types::device::MappableAvailableDevices;
+use eframe::egui::{Context, ViewportCommand, WindowLevel};
 
 pub struct StateManager {
     app_state: AppState,

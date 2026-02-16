@@ -1,8 +1,8 @@
-use std::str::FromStr;
-use cpal::{Device, DeviceId};
 use cpal::traits::{DeviceTrait, HostTrait};
-use serde::{Deserializer, Serializer};
+use cpal::{Device, DeviceId};
 use serde::de::Error;
+use serde::{Deserializer, Serializer};
+use std::str::FromStr;
 
 pub struct MappableAvailableDevices(cpal::Host, Vec<AvailableDevice>);
 
@@ -47,7 +47,8 @@ impl AvailableDevice {
 
 impl MappableAvailableDevices {
     pub fn from_host(host: cpal::Host) -> Self {
-        let devices = host.output_devices()
+        let devices = host
+            .output_devices()
             .into_iter()
             .flatten()
             .filter_map(|d| AvailableDevice::new(d))
@@ -61,9 +62,7 @@ impl MappableAvailableDevices {
     }
 
     pub fn get(&self, id: &SettingDeviceId) -> Option<&AvailableDevice> {
-        self.1.iter().find(|d| {
-            d.id() == id
-        })
+        self.1.iter().find(|d| d.id() == id)
     }
 
     pub fn to_output_device(&self, id: Option<&SettingDeviceId>) -> Option<AvailableDevice> {

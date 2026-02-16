@@ -1,14 +1,14 @@
-use cpal::DeviceId;
 use crate::errors::SonioxLiveErrors;
 use crate::settings::SettingsApp;
 use crate::soniox::request::create_request;
 use crate::soniox::worker::SonioxWorker;
 use crate::transcription::audio::AudioSession;
 use crate::types::audio::AudioSample;
+use crate::types::device::MappableAvailableDevices;
 use crate::types::events::SonioxEvent;
+use cpal::DeviceId;
 use eframe::egui::Context;
 use tokio::sync::mpsc::{Receiver, channel};
-use crate::types::device::MappableAvailableDevices;
 
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,
@@ -17,8 +17,14 @@ pub struct TranscriptionService {
 }
 
 impl TranscriptionService {
-    pub fn start(ctx: Context, settings: &SettingsApp, devices: &MappableAvailableDevices) -> Result<Self, SonioxLiveErrors> {
-        let device = devices.to_output_device(settings.device_id.as_ref()).ok_or(SonioxLiveErrors::NotFoundOutputDevice)?;
+    pub fn start(
+        ctx: Context,
+        settings: &SettingsApp,
+        devices: &MappableAvailableDevices,
+    ) -> Result<Self, SonioxLiveErrors> {
+        let device = devices
+            .to_output_device(settings.device_id.as_ref())
+            .ok_or(SonioxLiveErrors::NotFoundOutputDevice)?;
         let (tx_worker, mut rx_worker) = channel::<SonioxEvent>(128);
         let (tx_event, rx_event) = channel::<SonioxEvent>(128);
         let (tx_audio, rx_audio) = channel::<AudioSample>(256);

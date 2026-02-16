@@ -1,5 +1,6 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::settings::SettingsApp;
+use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use eframe::egui::{
     self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
@@ -8,7 +9,6 @@ use eframe::egui::{
 use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
-use crate::types::device::MappableAvailableDevices;
 
 pub fn show_settings_window(
     ctx: &Context,
@@ -84,11 +84,7 @@ fn ui_bottom_panel(
         });
 }
 
-fn ui_section_app(
-    ui: &mut Ui,
-    settings: &mut SettingsApp,
-    devices: &mut MappableAvailableDevices,
-) {
+fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut MappableAvailableDevices) {
     ui.collapsing("Configuration App", |ui| {
         Grid::new("app_grid")
             .num_columns(2)
@@ -111,7 +107,8 @@ fn ui_section_app(
                     ui.label("Output Device:");
 
                     let default_label = "System Default";
-                    let current = settings.device_id()
+                    let current = settings
+                        .device_id()
                         .and_then(|d| devices.get(d))
                         .map(|d| d.name())
                         .unwrap_or(default_label);
@@ -119,11 +116,7 @@ fn ui_section_app(
                         .selected_text(current)
                         .width(100.0)
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(
-                                &mut settings.device_id,
-                                None,
-                                default_label,
-                            );
+                            ui.selectable_value(&mut settings.device_id, None, default_label);
                             ui.separator();
                             for device in devices.iter() {
                                 ui.selectable_value(
