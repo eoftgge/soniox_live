@@ -1,12 +1,12 @@
 use crate::errors::SonioxLiveErrors;
 use crate::types::device::SettingDeviceId;
 use crate::types::languages::LanguageHint;
+use crate::types::tracing::TracingLevel;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use std::str::FromStr;
 use std::sync::Arc;
-use tracing_subscriber::filter::LevelFilter;
+use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SettingsApp {
@@ -18,7 +18,7 @@ pub struct SettingsApp {
     pub(crate) enable_high_priority: bool,
     pub(crate) enable_speakers: bool,
     pub(crate) enable_background: bool,
-    pub(crate) level: String, // maybe to make it an enum
+    pub(crate) level: TracingLevel,
     pub(crate) offset: (f32, f32),
     pub(crate) anchor: usize,
     pub(crate) font_size: usize,
@@ -38,7 +38,7 @@ impl Default for SettingsApp {
             enable_high_priority: true,
             enable_speakers: true,
             enable_background: true,
-            level: "info".into(),
+            level: TracingLevel::Info,
             offset: (0.0, -30.0),
             anchor: 7,
             font_size: 18,
@@ -104,12 +104,8 @@ impl SettingsApp {
         self.device_id.as_ref()
     }
 
-    pub fn level(&self) -> Result<LevelFilter, SonioxLiveErrors> {
-        LevelFilter::from_str(&self.level).map_err(|_| {
-            SonioxLiveErrors::from(
-                "field `level` isn't valid. did u mean `trace`, `debug` and `warn`?",
-            )
-        })
+    pub fn level(&self) -> Level {
+        Level::from(self.level)
     }
 
     pub fn text_color(&self) -> Color32 {

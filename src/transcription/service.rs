@@ -6,7 +6,6 @@ use crate::transcription::audio::AudioSession;
 use crate::types::audio::AudioSample;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::events::SonioxEvent;
-use cpal::DeviceId;
 use eframe::egui::Context;
 use tokio::sync::mpsc::{Receiver, channel};
 

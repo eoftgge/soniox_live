@@ -9,7 +9,7 @@ use soniox_live::{ICON_BYTES, initialize_app};
 
 fn run() -> Result<(), SonioxLiveErrors> {
     let settings = SettingsApp::new("soniox.toml")?;
-    let app = initialize_app(settings)?;
+    let app = initialize_app(settings);
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_app_id("sublive")

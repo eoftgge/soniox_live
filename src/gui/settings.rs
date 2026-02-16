@@ -9,6 +9,7 @@ use eframe::egui::{
 use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
+use crate::types::tracing::LEVELS;
 
 pub fn show_settings_window(
     ctx: &Context,
@@ -93,12 +94,12 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                 ui.horizontal(|ui| {
                     ui.label("Log Level:");
                     ComboBox::from_id_salt("log_level")
-                        .selected_text(&settings.level)
+                        .selected_text(settings.level.to_string())
+                        .width(40.0)
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut settings.level, "debug".to_string(), "Debug");
-                            ui.selectable_value(&mut settings.level, "info".to_string(), "Info");
-                            ui.selectable_value(&mut settings.level, "warn".to_string(), "Warn");
-                            ui.selectable_value(&mut settings.level, "error".to_string(), "Error");
+                            for level in LEVELS {
+                                ui.selectable_value(&mut settings.level, *level, level.to_string());
+                            }
                         });
                 });
                 ui.end_row();
