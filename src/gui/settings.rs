@@ -198,7 +198,7 @@ fn ui_section_position(ui: &mut Ui, ctx: &Context, settings: &mut SettingsApp) {
     ui.collapsing("Position", |ui| {
         Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.add(egui::Label::new("Offset (X, Y):").extend());
+                ui.add(egui::Label::new("Offset:").extend());
                 ui.label("X:");
                 ui.add(DragValue::new(&mut settings.offset.0).speed(1.0));
                 ui.label("Y:");
