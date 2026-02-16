@@ -84,7 +84,7 @@ impl App for SubtitlesApp {
         let manager = &mut self.manager;
 
         match manager.app_state_mut() {
-            AppState::Config => show_settings_window(
+            AppState::Settings => show_settings_window(
                 ctx,
                 &mut self.settings,
                 manager,

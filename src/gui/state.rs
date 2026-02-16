@@ -12,12 +12,12 @@ pub struct StateManager {
 
 #[derive(Clone, Copy)]
 pub enum PendingState {
-    Config,
+    Settings,
     Overlay,
 }
 
 pub enum AppState {
-    Config,
+    Settings,
     Overlay(TranscriptionService),
 }
 
@@ -30,8 +30,8 @@ impl Default for StateManager {
 impl StateManager {
     pub fn new() -> Self {
         Self {
-            app_state: AppState::Config,
-            pending_state: Some(PendingState::Config),
+            app_state: AppState::Settings,
+            pending_state: Some(PendingState::Settings),
         }
     }
 
@@ -52,7 +52,7 @@ impl StateManager {
 
         resolved.apply_window_state(ctx, settings.enable_high_priority());
         match resolved {
-            PendingState::Config => self.app_state = AppState::Config,
+            PendingState::Settings => self.app_state = AppState::Settings,
             PendingState::Overlay => {
                 let ctx = ctx.clone();
                 let service = TranscriptionService::start(ctx, settings, devices)?;
@@ -75,7 +75,7 @@ impl StateManager {
 impl PendingState {
     pub fn apply_window_state(&self, ctx: &Context, enable_high_priority: bool) {
         match self {
-            Self::Config => {
+            Self::Settings => {
                 ctx.send_viewport_cmd(ViewportCommand::Decorations(true));
                 ctx.send_viewport_cmd(ViewportCommand::Transparent(false));
                 ctx.send_viewport_cmd(ViewportCommand::MousePassthrough(false));
