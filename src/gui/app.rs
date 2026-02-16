@@ -1,4 +1,4 @@
-use crate::gui::draw::draw_subtitles;
+use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, StateManager};
 use crate::settings::SettingsApp;
