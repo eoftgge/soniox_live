@@ -88,49 +88,43 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
             .num_columns(2)
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.label("Log Level:");
-                    ComboBox::from_id_salt("log_level")
-                        .selected_text(settings.level.to_string())
-                        .width(40.0)
-                        .show_ui(ui, |ui| {
-                            for level in LEVELS {
-                                ui.selectable_value(&mut settings.level, *level, level.to_string());
-                            }
-                        });
-                });
+                ui.label("Log Level:");
+                ComboBox::from_id_salt("log_level")
+                    .selected_text(settings.level.to_string())
+                    .width(40.0)
+                    .show_ui(ui, |ui| {
+                        for level in LEVELS {
+                            ui.selectable_value(&mut settings.level, *level, level.to_string());
+                        }
+                    });
                 ui.end_row();
 
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Log to file:").wrap());
-                });
+                ui.label("Log to file");
                 ui.add(Checkbox::without_text(&mut settings.log_to_file)).on_hover_text("Allow logs to be added to the file");
                 ui.end_row();
 
-                ui.horizontal(|ui| {
-                    ui.label("Output Device:");
+                ui.label("Output Device:");
 
-                    let default_label = "System Default";
-                    let current = settings
-                        .device_id()
-                        .and_then(|d| devices.get(d))
-                        .map(|d| d.name())
-                        .unwrap_or(default_label);
-                    ComboBox::from_id_salt("selector_device")
-                        .selected_text(current)
-                        .width(100.0)
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut settings.device_id, None, default_label);
-                            ui.separator();
-                            for device in devices.iter() {
-                                ui.selectable_value(
-                                    &mut settings.device_id,
-                                    Some(device.id().clone()),
-                                    device.name(),
-                                );
-                            }
-                        });
-                })
+                let default_label = "System Default";
+                let current = settings
+                    .device_id()
+                    .and_then(|d| devices.get(d))
+                    .map(|d| d.name())
+                    .unwrap_or(default_label);
+                ComboBox::from_id_salt("selector_device")
+                    .selected_text(current)
+                    .width(100.0)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut settings.device_id, None, default_label);
+                        ui.separator();
+                        for device in devices.iter() {
+                            ui.selectable_value(
+                                &mut settings.device_id,
+                                Some(device.id().clone()),
+                                device.name(),
+                            );
+                        }
+                    });
             });
     });
 }
