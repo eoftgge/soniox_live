@@ -56,11 +56,11 @@ pub struct SubtitlesApp {
     manager: StateManager,
     frame_counter: u64,
     devices: MappableAvailableDevices,
-    _guard: WorkerGuard,
+    _guard: Option<WorkerGuard>,
 }
 
 impl SubtitlesApp {
-    pub fn new(settings: SettingsApp, guard: WorkerGuard) -> Self {
+    pub fn new(settings: SettingsApp, guard: Option<WorkerGuard>) -> Self {
         Self {
             store: TranscriptionStore::new(settings.max_blocks()),
             toasts: Toasts::new(),
