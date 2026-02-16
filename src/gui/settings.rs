@@ -8,12 +8,14 @@ use eframe::egui::{
 use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
+use crate::types::device::MappableAvailableDevices;
 
 pub fn show_settings_window(
     ctx: &Context,
     settings: &mut SettingsApp,
     manager: &mut StateManager,
     toasts: &mut Toasts,
+    devices: &mut MappableAvailableDevices,
 ) {
     ui_bottom_panel(ctx, settings, manager, toasts);
 
@@ -25,7 +27,7 @@ pub fn show_settings_window(
             ui.separator();
 
             ScrollArea::vertical().show(ui, |ui| {
-                ui_log_level(ui, settings);
+                ui_section_app(ui, settings, devices);
                 ui_section_api(ui, settings);
                 ui_section_position(ui, ctx, settings);
                 ui_section_appearance(ui, settings);
@@ -82,16 +84,56 @@ fn ui_bottom_panel(
         });
 }
 
-fn ui_log_level(ui: &mut Ui, settings: &mut SettingsApp) {
-    ui.horizontal(|ui| {
-        ui.label("Log Level:");
-        ComboBox::from_id_salt("log_level")
-            .selected_text(&settings.level)
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut settings.level, "debug".to_string(), "Debug");
-                ui.selectable_value(&mut settings.level, "info".to_string(), "Info");
-                ui.selectable_value(&mut settings.level, "warn".to_string(), "Warn");
-                ui.selectable_value(&mut settings.level, "error".to_string(), "Error");
+fn ui_section_app(
+    ui: &mut Ui,
+    settings: &mut SettingsApp,
+    devices: &mut MappableAvailableDevices,
+) {
+    ui.collapsing("Configuration App", |ui| {
+        Grid::new("app_grid")
+            .num_columns(2)
+            .spacing([10.0, 10.0])
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Log Level:");
+                    ComboBox::from_id_salt("log_level")
+                        .selected_text(&settings.level)
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut settings.level, "debug".to_string(), "Debug");
+                            ui.selectable_value(&mut settings.level, "info".to_string(), "Info");
+                            ui.selectable_value(&mut settings.level, "warn".to_string(), "Warn");
+                            ui.selectable_value(&mut settings.level, "error".to_string(), "Error");
+                        });
+                });
+                ui.end_row();
+
+                ui.horizontal(|ui| {
+                    ui.label("Output Device:");
+
+                    let default_label = "System Default";
+                    let current = settings.device_id()
+                        .and_then(|d| devices.get(d))
+                        .map(|d| d.name())
+                        .unwrap_or(default_label);
+                    ComboBox::from_id_salt("selector_device")
+                        .selected_text(current)
+                        .width(100.0)
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(
+                                &mut settings.device_id,
+                                None,
+                                default_label,
+                            );
+                            ui.separator();
+                            for device in devices.iter() {
+                                ui.selectable_value(
+                                    &mut settings.device_id,
+                                    Some(device.id().clone()),
+                                    device.name(),
+                                );
+                            }
+                        });
+                })
             });
     });
 }

@@ -1,8 +1,8 @@
 use crate::errors::SonioxLiveErrors;
 use crate::transcription::utils::convert_audio_chunk;
 use crate::types::audio::AudioSample;
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{Stream, StreamConfig};
+use cpal::traits::{DeviceTrait, StreamTrait};
+use cpal::{Device, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -17,14 +17,10 @@ impl AudioSession {
     }
 
     pub fn open(
+        device: Device,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
     ) -> Result<Self, SonioxLiveErrors> {
-        let host = cpal::default_host();
-        let device = host
-            .default_output_device()
-            .ok_or_else(|| SonioxLiveErrors::NotFoundOutputDevice)?;
-
         let config = device.default_output_config()?.config();
         let stream = device.build_input_stream(
             &config,

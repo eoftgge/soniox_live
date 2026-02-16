@@ -1,3 +1,4 @@
+use cpal::DeviceId;
 use crate::errors::SonioxLiveErrors;
 use crate::settings::SettingsApp;
 use crate::soniox::request::create_request;
@@ -7,6 +8,7 @@ use crate::types::audio::AudioSample;
 use crate::types::events::SonioxEvent;
 use eframe::egui::Context;
 use tokio::sync::mpsc::{Receiver, channel};
+use crate::types::device::MappableAvailableDevices;
 
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,
@@ -15,16 +17,16 @@ pub struct TranscriptionService {
 }
 
 impl TranscriptionService {
-    pub fn start(ctx: Context, settings_app: &SettingsApp) -> Result<Self, SonioxLiveErrors> {
+    pub fn start(ctx: Context, settings: &SettingsApp, devices: &MappableAvailableDevices) -> Result<Self, SonioxLiveErrors> {
+        let device = devices.to_output_device(settings.device_id.as_ref()).ok_or(SonioxLiveErrors::NotFoundOutputDevice)?;
         let (tx_worker, mut rx_worker) = channel::<SonioxEvent>(128);
         let (tx_event, rx_event) = channel::<SonioxEvent>(128);
         let (tx_audio, rx_audio) = channel::<AudioSample>(256);
         let (tx_recycle, rx_recycle) = channel::<AudioSample>(256);
-
         let tx_worker_2 = tx_worker.clone();
         let worker = SonioxWorker::new(rx_audio, tx_recycle, tx_worker_2);
-        let audio = AudioSession::open(tx_audio, rx_recycle)?;
-        let request = create_request(settings_app, audio.config())?;
+        let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
+        let request = create_request(settings, audio.config())?;
         audio.play()?;
 
         let handle = tokio::spawn(async move {

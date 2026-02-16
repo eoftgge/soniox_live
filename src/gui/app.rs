@@ -12,6 +12,7 @@ use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
+use crate::types::device::MappableAvailableDevices;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -54,6 +55,7 @@ pub struct SubtitlesApp {
     toasts: Toasts,
     manager: StateManager,
     frame_counter: u64,
+    devices: MappableAvailableDevices,
     _guard: WorkerGuard,
 }
 
@@ -65,6 +67,7 @@ impl SubtitlesApp {
             manager: StateManager::new(),
             settings,
             frame_counter: 0,
+            devices: MappableAvailableDevices::from_default_host(),
             _guard: guard,
         }
     }
@@ -72,15 +75,13 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn update(&mut self, ctx: &Context, _: &mut Frame) {
-        if let Err(err) = self.manager.resolve(ctx, &mut self.store, &self.settings) {
+        if let Err(err) = self.manager.resolve(ctx, &mut self.store, &self.settings, &self.devices) {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
         let manager = &mut self.manager;
 
         match manager.app_state_mut() {
-            AppState::Config => {
-                show_settings_window(ctx, &mut self.settings, &mut self.manager, &mut self.toasts)
-            }
+            AppState::Config => show_settings_window(ctx, &mut self.settings, manager, &mut self.toasts, &mut self.devices),
             AppState::Overlay(service) => {
                 let timeout = Duration::from_secs(15);
                 let ctx_for_plan = ctx.clone();

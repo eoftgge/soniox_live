@@ -3,6 +3,7 @@ use crate::settings::SettingsApp;
 use crate::transcription::service::TranscriptionService;
 use crate::transcription::store::TranscriptionStore;
 use eframe::egui::{Context, ViewportCommand, WindowLevel};
+use crate::types::device::MappableAvailableDevices;
 
 pub struct StateManager {
     app_state: AppState,
@@ -43,6 +44,7 @@ impl StateManager {
         ctx: &Context,
         store: &mut TranscriptionStore,
         settings: &SettingsApp,
+        devices: &MappableAvailableDevices,
     ) -> Result<(), SonioxLiveErrors> {
         let Some(resolved) = self.pending_state.take() else {
             return Ok(());
@@ -53,7 +55,7 @@ impl StateManager {
             PendingState::Config => self.app_state = AppState::Config,
             PendingState::Overlay => {
                 let ctx = ctx.clone();
-                let service = TranscriptionService::start(ctx, settings)?;
+                let service = TranscriptionService::start(ctx, settings, devices)?;
                 store.resize(settings.max_blocks);
                 self.app_state = AppState::Overlay(service);
             }

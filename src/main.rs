@@ -47,7 +47,7 @@ fn main() {
     let _e = rt.enter();
 
     if let Err(err) = run() {
-        tracing::error!("Soniox Live {:?}", err);
+        eprintln!("Soniox Live {:?}", err);
         std::process::exit(1);
     }
 }
