@@ -51,7 +51,7 @@ impl MappableAvailableDevices {
             .output_devices()
             .into_iter()
             .flatten()
-            .filter_map(|d| AvailableDevice::new(d))
+            .filter_map(AvailableDevice::new)
             .collect();
         Self(host, devices)
     }
