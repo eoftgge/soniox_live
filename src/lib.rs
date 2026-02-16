@@ -1,6 +1,6 @@
 use crate::gui::app::SubtitlesApp;
-use tracing::Level;
 use settings::SettingsApp;
+use tracing::Level;
 
 pub mod errors;
 pub mod gui;

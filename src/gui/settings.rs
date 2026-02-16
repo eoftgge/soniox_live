@@ -2,6 +2,7 @@ use crate::gui::state::{PendingState, StateManager};
 use crate::settings::SettingsApp;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
+use crate::types::tracing::LEVELS;
 use eframe::egui::{
     self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
     vec2,
@@ -9,7 +10,6 @@ use eframe::egui::{
 use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
-use crate::types::tracing::LEVELS;
 
 pub fn show_settings_window(
     ctx: &Context,
