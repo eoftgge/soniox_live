@@ -4,7 +4,6 @@ use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::LEVELS;
 use eframe::egui::{self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2, Checkbox};
-use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
 
@@ -295,15 +294,8 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
                 ui.add(Slider::new(&mut settings.font_size, 10..=80));
                 ui.end_row();
 
-                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    ui.label("Style:");
-                });
-                Grid::new("font_style").spacing([10.0, 8.0]).show(ui, |ui| {
-                    ui.checkbox(&mut settings.enable_background, "Background");
-                    ui.end_row();
-                    ui.checkbox(&mut settings.enable_high_priority, "Always On Top");
-                    ui.end_row();
-                });
+                ui.label("Always On Top:");
+                ui.add(Checkbox::without_text(&mut settings.enable_high_priority));
                 ui.end_row();
             });
 
@@ -313,53 +305,43 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
             .num_columns(2)
             .spacing([10.0, 8.0])
             .show(ui, |ui| {
-                ui.label("Text Color:");
+                ui.label("Background Color:");
                 ui.horizontal(|ui| {
-                    if ui
-                        .button("🔄 Reset to default")
-                        .on_hover_text("Reset to Yellow")
-                        .clicked()
-                    {
-                        settings.text_color = (255, 255, 0);
+                    let color = &mut settings.background_color;
+                    if ui.color_edit_button_rgba_unmultiplied(color).changed() {
+                        settings.background_color = [color[0], color[1], color[2], color[3]];
+                    }
+                    if ui.button("Clear").clicked() {
+                        settings.background_color = [0.; 4];
                     }
                 });
                 ui.end_row();
 
-                ui.label("Red:");
-                ui.add(Slider::new(&mut settings.text_color.0, 0..=255));
-                ui.end_row();
-
-                ui.label("Green:");
-                ui.add(Slider::new(&mut settings.text_color.1, 0..=255));
-                ui.end_row();
-
-                ui.label("Blue:");
-                ui.add(Slider::new(&mut settings.text_color.2, 0..=255));
+                ui.label("Text Color:");
+                ui.horizontal(|ui| {
+                    let color = &mut settings.text_color;
+                    if ui.color_edit_button_rgb(color).changed() {
+                        settings.text_color = [color[0], color[1], color[2]];
+                    }
+                    if ui
+                        .button("Clear")
+                        .on_hover_text("Reset to Yellow")
+                        .clicked()
+                    {
+                        settings.text_color = [255., 255., 0.]; // yellow
+                    }
+                });
                 ui.end_row();
             });
 
-        let p_col = Color32::from_rgb(
-            settings.text_color.0,
-            settings.text_color.1,
-            settings.text_color.2,
-        );
         egui::Frame::new()
-            .fill(p_col)
+            .fill(settings.background_color())
             .corner_radius(5.0)
             .inner_margin(8.0)
             .show(ui, |ui| {
-                let text_col = if (settings.text_color.0 as u16
-                    + settings.text_color.1 as u16
-                    + settings.text_color.2 as u16)
-                    > 380
-                {
-                    Color32::BLACK
-                } else {
-                    Color32::WHITE
-                };
                 ui.label(
                     RichText::new(format!("Preview ({:.0}px)", settings.font_size))
-                        .color(text_col)
+                        .color(settings.text_color())
                         .size(settings.font_size()),
                 );
             });

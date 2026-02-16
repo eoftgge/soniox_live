@@ -113,7 +113,7 @@ impl App for SubtitlesApp {
                                 &self.store,
                                 self.settings.font_size(),
                                 self.settings.text_color(),
-                                self.settings.get_background_color(),
+                                self.settings.background_color(),
                             );
                         });
                     });

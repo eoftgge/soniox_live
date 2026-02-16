@@ -6,6 +6,7 @@ use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
+use eframe::epaint::Rgba;
 use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -17,12 +18,12 @@ pub struct SettingsApp {
     pub(crate) enable_translate: bool,
     pub(crate) enable_high_priority: bool,
     pub(crate) enable_speakers: bool,
-    pub(crate) enable_background: bool,
     pub(crate) level: TracingLevel,
     pub(crate) offset: (f32, f32),
     pub(crate) anchor: usize,
     pub(crate) font_size: usize,
-    pub(crate) text_color: (u8, u8, u8),
+    pub(crate) background_color: [f32; 4],
+    pub(crate) text_color: [f32; 3],
     pub(crate) max_blocks: usize,
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) log_to_file: bool,
@@ -38,12 +39,12 @@ impl Default for SettingsApp {
             enable_translate: false,
             enable_high_priority: true,
             enable_speakers: true,
-            enable_background: true,
             level: TracingLevel::Info,
             offset: (0.0, -30.0),
             anchor: 7,
             font_size: 18,
-            text_color: (255, 255, 0), // yellow
+            background_color: [0., 0., 0., 0.], // transparent
+            text_color: [255., 255., 0.], // yellow
             max_blocks: 3,
             device_id: None,
             log_to_file: false,
@@ -111,14 +112,13 @@ impl SettingsApp {
     }
 
     pub fn text_color(&self) -> Color32 {
-        Color32::from_rgb(self.text_color.0, self.text_color.1, self.text_color.2)
+        let color = self.text_color;
+        Rgba::from_rgb(color[0], color[1], color[2]).into()
     }
 
-    pub fn get_background_color(&self) -> Color32 {
-        if self.enable_background {
-            return Color32::from_black_alpha(155);
-        }
-        Color32::TRANSPARENT
+    pub fn background_color(&self) -> Color32 {
+        let color = self.background_color;
+        Rgba::from_rgba_unmultiplied(color[0], color[1], color[2], color[3]).into()
     }
 
     pub fn get_anchor(&self) -> (Align2, Vec2) {
