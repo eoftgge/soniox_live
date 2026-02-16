@@ -66,11 +66,8 @@ impl MappableAvailableDevices {
     }
 
     pub fn to_output_device(&self, id: Option<&SettingDeviceId>) -> Option<AvailableDevice> {
-        if let Some(target) = id {
-            self.get(target).cloned()
-        } else {
-            AvailableDevice::from_host(&self.0)
-        }
+        let device = id.and_then(|target| self.get(target).cloned());
+        device.or_else(|| AvailableDevice::from_host(&self.0))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &AvailableDevice> {
