@@ -104,6 +104,10 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                 });
                 ui.end_row();
 
+                ui.label("Log to file:");
+                ui.checkbox(&mut settings.log_to_file, "Enable to append to file log");
+                ui.end_row();
+
                 ui.horizontal(|ui| {
                     ui.label("Output Device:");
 

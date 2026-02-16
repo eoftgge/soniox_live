@@ -25,6 +25,7 @@ pub struct SettingsApp {
     pub(crate) text_color: (u8, u8, u8),
     pub(crate) max_blocks: usize,
     pub(crate) device_id: Option<SettingDeviceId>,
+    pub(crate) log_to_file: bool,
 }
 
 impl Default for SettingsApp {
@@ -45,6 +46,7 @@ impl Default for SettingsApp {
             text_color: (255, 255, 0), // yellow
             max_blocks: 3,
             device_id: None,
+            log_to_file: false,
         }
     }
 }
