@@ -135,14 +135,12 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
             .num_columns(2)
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("API Key:").extend());
-                });
+                ui.add(egui::Label::new("API Key:").extend());
                 ui.add(TextEdit::singleline(&mut settings.api_key).password(true));
                 ui.end_row();
 
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Languages:").extend());
+                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                    ui.label("Languages:");
                 });
                 ui.vertical(|ui| {
                     let mut to_remove = None;
@@ -164,28 +162,22 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
                 });
                 ui.end_row();
 
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Translation:").extend());
-                });
-                ui.vertical(|ui| {
-                    ui.checkbox(&mut settings.enable_translate, "Enable");
-                    if settings.enable_translate {
-                        ui_language_searchable_combo(
-                            ui,
-                            "target_lang",
-                            &mut settings.target_language,
-                        );
-                    }
-                });
+                ui.add(egui::Label::new("Translation:").extend());
+                ui.checkbox(&mut settings.enable_translate, "Enable");
+                if settings.enable_translate {
+                    ui_language_searchable_combo(
+                        ui,
+                        "target_lang",
+                        &mut settings.target_language,
+                    );
+                }
                 ui.end_row();
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Context:").extend());
-                });
+
+                ui.add(egui::Label::new("Context:").extend());
                 ui.add(TextEdit::multiline(&mut settings.context).desired_rows(2));
                 ui.end_row();
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Options:").extend());
-                });
+
+                ui.add(egui::Label::new("Options:").extend());
                 ui.checkbox(&mut settings.enable_speakers, "Enable Speakers ID");
                 ui.end_row();
             });
@@ -195,19 +187,16 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
 fn ui_section_position(ui: &mut Ui, ctx: &Context, settings: &mut SettingsApp) {
     ui.collapsing("Position", |ui| {
         Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
+            ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
-                ui.add(egui::Label::new("Offset:").extend());
-                ui.label("X:");
-                ui.add(DragValue::new(&mut settings.offset.0).speed(1.0));
-                ui.label("Y:");
-                ui.add(DragValue::new(&mut settings.offset.1).speed(1.0));
+                ui.add(DragValue::new(&mut settings.offset.0).speed(1.0).prefix("X: "));
+                ui.add(DragValue::new(&mut settings.offset.1).speed(1.0).prefix("Y: "));
             });
             ui.end_row();
 
-            ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
+            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                 ui.add(egui::Label::new("Snap to:").extend());
             });
-            ui.end_row();
             ui.vertical(|ui| {
                 Grid::new("snap_buttons")
                     .spacing([5.0, 5.0])
@@ -306,8 +295,8 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
                 ui.add(Slider::new(&mut settings.font_size, 10..=80));
                 ui.end_row();
 
-                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                    ui.add(egui::Label::new("Style:").extend());
+                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                    ui.label("Style:");
                 });
                 Grid::new("font_style").spacing([10.0, 8.0]).show(ui, |ui| {
                     ui.checkbox(&mut settings.enable_background, "Background");
