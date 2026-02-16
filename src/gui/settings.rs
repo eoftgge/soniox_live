@@ -3,10 +3,7 @@ use crate::settings::SettingsApp;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::LEVELS;
-use eframe::egui::{
-    self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
-    vec2,
-};
+use eframe::egui::{self, Button, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2, Checkbox};
 use eframe::epaint::Color32;
 use egui_notify::Toasts;
 use std::time::Duration;
@@ -104,8 +101,10 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                 });
                 ui.end_row();
 
-                ui.label("Log to file:");
-                ui.checkbox(&mut settings.log_to_file, "Enable to append to file log");
+                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
+                    ui.add(egui::Label::new("Log to file:").wrap());
+                });
+                ui.add(Checkbox::without_text(&mut settings.log_to_file)).on_hover_text("Allow logs to be added to the file");
                 ui.end_row();
 
                 ui.horizontal(|ui| {
@@ -305,11 +304,11 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
         Grid::new("appearance_grid")
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
-                ui.label("Max blocks:");
+                ui.label("Max Blocks:");
                 ui.add(Slider::new(&mut settings.max_blocks, 1..=10));
                 ui.end_row();
 
-                ui.label("Font size:");
+                ui.label("Font Size:");
                 ui.add(Slider::new(&mut settings.font_size, 10..=80));
                 ui.end_row();
 
@@ -319,7 +318,7 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
                 Grid::new("font_style").spacing([10.0, 8.0]).show(ui, |ui| {
                     ui.checkbox(&mut settings.enable_background, "Background");
                     ui.end_row();
-                    ui.checkbox(&mut settings.enable_high_priority, "Always on top");
+                    ui.checkbox(&mut settings.enable_high_priority, "Always On Top");
                     ui.end_row();
                 });
                 ui.end_row();
