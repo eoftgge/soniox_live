@@ -106,6 +106,10 @@ impl SettingsApp {
     pub fn device_id(&self) -> Option<&SettingDeviceId> {
         self.device_id.as_ref()
     }
+    
+    pub fn log_to_file(&self) -> bool {
+        self.log_to_file
+    }
 
     pub fn level(&self) -> Level {
         Level::from(self.level)

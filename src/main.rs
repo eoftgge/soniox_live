@@ -5,11 +5,17 @@ use eframe::icon_data::from_png_bytes;
 use soniox_live::errors::SonioxLiveErrors;
 use soniox_live::gui::fonts::setup_custom_fonts;
 use soniox_live::settings::SettingsApp;
-use soniox_live::{ICON_BYTES, initialize_app};
+use soniox_live::setup_tracing;
+use soniox_live::gui::app::SubtitlesApp;
+
+const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 fn run() -> Result<(), SonioxLiveErrors> {
     let settings = SettingsApp::new("soniox.toml")?;
-    let app = initialize_app(settings);
+    let level = settings.level();
+    let guard = setup_tracing(level, settings.log_to_file());
+    let app = SubtitlesApp::new(settings, guard);
+
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_app_id("sublive")
@@ -45,7 +51,7 @@ fn run() -> Result<(), SonioxLiveErrors> {
 fn main() {
     #[cfg(target_os = "macos")]
     embed_plist::embed_info_plist!("Info.plist");
-    
+
     let rt = tokio::runtime::Runtime::new().expect("Should be able to get rt main thread");
     let _e = rt.enter();
 

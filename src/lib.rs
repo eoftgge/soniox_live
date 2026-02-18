@@ -1,5 +1,3 @@
-use crate::gui::app::SubtitlesApp;
-use settings::SettingsApp;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::writer::BoxMakeWriter;
@@ -11,9 +9,7 @@ pub mod soniox;
 pub mod transcription;
 pub mod types;
 
-pub const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
-
-fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
+pub fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
     let (writer, guard) = if log_to_file {
         let file_appender = tracing_appender::rolling::daily("logs", "soniox.log");
         let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
@@ -30,10 +26,4 @@ fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
         .with_line_number(true)
         .init();
     guard
-}
-
-pub fn initialize_app(settings: SettingsApp) -> SubtitlesApp {
-    let level = settings.level();
-    let guard = setup_tracing(level, settings.log_to_file);
-    SubtitlesApp::new(settings, guard)
 }
