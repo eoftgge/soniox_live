@@ -2,11 +2,11 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SonioxLiveErrors {
-    #[error("Audio output stream creation failed")]
+    #[error("Audio output stream creation failed: {0}")]
     AudioBuildStream(#[from] cpal::BuildStreamError),
-    #[error("Audio playback failure")]
+    #[error("Audio playback failure: {0}")]
     AudioPlayStream(#[from] cpal::PlayStreamError),
-    #[error("Failed to get default audio config")]
+    #[error("Failed to get default audio config: {0}")]
     AudioConfig(#[from] cpal::DefaultStreamConfigError),
     #[error("WebSocket connection error: {0}")]
     WebSocket(#[from] tungstenite::Error),
