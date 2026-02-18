@@ -21,6 +21,7 @@ toml = "1.0.0"
 egui-notify = "0.21.0"
 cpal = "0.17.1"
 bytemuck = "1.25.0"
+embed_plist = "1.2.2"
 
 [build-dependencies]
 winres = "0.1.12"
