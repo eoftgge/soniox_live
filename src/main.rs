@@ -50,7 +50,7 @@ fn run() -> Result<(), SonioxLiveErrors> {
 
 fn main() {
     #[cfg(target_os = "macos")]
-    embed_plist::embed_info_plist!("Info.plist");
+    embed_plist::embed_info_plist!("../Info.plist");
 
     let rt = tokio::runtime::Runtime::new().expect("Should be able to get rt main thread");
     let _e = rt.enter();
