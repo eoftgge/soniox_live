@@ -15,5 +15,7 @@ fn main() {
                 .expect("Couldn't convert icon path to string"),
         );
         res.compile().expect("Failed to compile resource");
+    } else if cfg!(target_os = "macos") {
+        println!("cargo:rustc-link-arg=-Wl,-sectcreate,__TEXT,__info_plist,Info.plist");
     }
 }
