@@ -167,7 +167,10 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
 
                 ui.add(egui::Label::new("Translation:").extend());
                 ui.checkbox(&mut settings.enable_translate, "Enable");
+
                 if settings.enable_translate {
+                    ui.end_row();
+                    ui.add(egui::Label::new("Target language:").extend());
                     ui_language_searchable_combo(ui, "target_lang", &mut settings.target_language);
                 }
                 ui.end_row();
