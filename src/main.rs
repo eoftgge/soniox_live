@@ -3,10 +3,10 @@
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::icon_data::from_png_bytes;
 use soniox_live::errors::SonioxLiveErrors;
+use soniox_live::gui::app::SubtitlesApp;
 use soniox_live::gui::fonts::setup_custom_fonts;
 use soniox_live::settings::SettingsApp;
 use soniox_live::setup_tracing;
-use soniox_live::gui::app::SubtitlesApp;
 
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
