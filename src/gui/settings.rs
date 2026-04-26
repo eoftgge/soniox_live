@@ -75,6 +75,10 @@ fn ui_bottom_panel(
                         .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
+                        if settings.api_key.trim().is_empty() {
+                            toasts.warning("No API key provided!").closable(false);
+                            return;
+                        }
                         manager.switch(PendingState::Overlay);
                         toasts.info("Starting subtitles overlay...").closable(false);
                     }
