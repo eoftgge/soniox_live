@@ -10,10 +10,12 @@ use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;
 use tungstenite::{Bytes, Message};
+use crate::transcription::utils::is_silent;
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
+const HANGOVER_CHUNKS_LIMIT: usize = 5;
 
 pub(crate) struct SonioxWorker {
     rx_audio: Receiver<AudioSample>,
@@ -115,13 +117,25 @@ impl SonioxWorker {
         mut writer: SonioxSessionWriter,
         mut reader: SonioxSessionReader,
     ) -> StreamAction {
+        let mut hangover_counter = 0;
+
         loop {
             tokio::select! {
                 audio_opt = self.rx_audio.recv() => {
-                    let Some(buffer) = audio_opt else {
+                    let Some(mut buffer) = audio_opt else {
                         tracing::debug!("Audio channel closed by app. Stopping worker.");
                         return StreamAction::Stop;
                     };
+
+                    if !is_silent(&buffer) {
+                        hangover_counter = HANGOVER_CHUNKS_LIMIT;
+                    } else if hangover_counter > 0 {
+                        hangover_counter = hangover_counter.saturating_sub(1);
+                    } else {
+                        buffer.clear();
+                        let _ = self.tx_recycle.send(buffer).await;
+                        continue;
+                    }
 
                     if let Err(e) = self.handle_audio(buffer, &mut writer).await {
                         tracing::error!("Failed to send audio: {}", e);
