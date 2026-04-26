@@ -3,6 +3,7 @@ use crate::types::subtitles::SubtitleBlock;
 use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
+use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
 
 pub struct TranscriptionStore {
     pub blocks: VecDeque<SubtitleBlock>,
@@ -34,8 +35,23 @@ impl TranscriptionStore {
             if token.is_final {
                 let speaker = token.speaker.clone();
                 let needs_new = match self.blocks.back() {
-                    Some(last) => last.speaker != speaker || last.text.len() > 200,
+                    Some(last) if last.speaker != speaker => true,
+                    Some(last) if last.text.len() > 200 => {
+                        let trimmed = token.text.trim();
+                        if trimmed.is_empty() || is_punctuation_or_symbol(trimmed) {
+                            false
+                        } else {
+                            let last_char = last.text.chars().last().unwrap_or(' ');
+                            let first_char = token.text.chars().next().unwrap_or(' ');
+
+                            let is_space_boundary = last_char.is_whitespace() || first_char.is_whitespace();
+                            let is_cjk_boundary = is_cjk(last_char) || is_cjk(first_char);
+
+                            is_space_boundary || is_cjk_boundary
+                        }
+                    },
                     None => true,
+                    _ => false,
                 };
 
                 if needs_new {
@@ -58,7 +74,7 @@ impl TranscriptionStore {
                         self.interim_blocks.push(block);
                     }
                     let mut new_block = SubtitleBlock::new(speaker);
-                    new_block.text.push_str(&token.text);
+                    new_block.text.push_str(token.text.trim_start());
                     current_interim_block = Some(new_block);
                 } else if let Some(block) = &mut current_interim_block {
                     block.text.push_str(&token.text);
