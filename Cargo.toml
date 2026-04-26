@@ -1,6 +1,6 @@
 [package]
 name = "soniox_live"
-version = "2.1.0"
+version = "2.1.1"
 edition = "2024"
 repository = "https://github.com/eoftgge/soniox_live"
 rust-version = "1.89.0"
