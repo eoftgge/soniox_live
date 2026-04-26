@@ -45,14 +45,10 @@ impl SonioxWorker {
 
         loop {
             let first_packet = if retry_count == 0 {
-                tracing::debug!("Waiting for audio input to connect...");
-                match self.rx_audio.recv().await {
-                    Some(packet) => packet,
-                    None => {
-                        tracing::info!("Audio channel closed. Exiting worker.");
-                        return Ok(());
-                    }
-                }
+                let Some(packet) = self.wait_first_packet().await else {
+                    return Ok(());
+                };
+                packet
             } else {
                 Vec::new()
             };
@@ -245,5 +241,25 @@ impl SonioxWorker {
             return Err(());
         }
         Ok(())
+    }
+
+    async fn wait_first_packet(&mut self) -> Option<AudioSample> {
+        tracing::debug!("Waiting for speech to connect to Soniox...");
+
+        loop {
+            match self.rx_audio.recv().await {
+                Some(packet) if !is_silent(&packet) => {
+                    return Some(packet);
+                },
+                Some(mut packet) => {
+                    packet.clear();
+                    let _ = self.tx_recycle.send(packet).await;
+                },
+                None => {
+                    tracing::info!("Audio channel closed by app. Stopping worker.");
+                    return None;
+                }
+            }
+        }
     }
 }
