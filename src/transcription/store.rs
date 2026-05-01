@@ -74,7 +74,7 @@ impl TranscriptionStore {
                         self.interim_blocks.push(block);
                     }
                     let mut new_block = SubtitleBlock::new(speaker);
-                    new_block.text.push_str(token.text.trim_start());
+                    new_block.text.push_str(&token.text);
                     current_interim_block = Some(new_block);
                 } else if let Some(block) = &mut current_interim_block {
                     block.text.push_str(&token.text);
