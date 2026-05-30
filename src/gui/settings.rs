@@ -99,7 +99,7 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                 ui.end_row();
 
                 ui.label("Threshold:");
-                ui.add(Slider::new(&mut settings.vad_threshold, 0f32..=2000f32));
+                ui.add(Slider::new(&mut settings.vad_threshold, 0f32..=2000f32).logarithmic(true));
                 ui.end_row();
 
                 ui.label("Log Level:");
