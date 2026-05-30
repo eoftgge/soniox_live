@@ -11,7 +11,7 @@ use soniox_live::setup_tracing;
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 fn run() -> Result<(), SonioxLiveErrors> {
-    let settings = SettingsApp::new("soniox.toml")?;
+    let settings = SettingsApp::new("soniox.toml");
     let level = settings.level();
     let guard = setup_tracing(level, settings.log_to_file());
     let app = SubtitlesApp::new(settings, guard);

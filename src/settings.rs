@@ -27,6 +27,7 @@ pub struct SettingsApp {
     pub(crate) max_blocks: usize,
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) log_to_file: bool,
+    pub(crate) hangover_chunks: usize,
 }
 
 impl Default for SettingsApp {
@@ -48,23 +49,22 @@ impl Default for SettingsApp {
             max_blocks: 3,
             device_id: None,
             log_to_file: false,
+            hangover_chunks: 5,
         }
     }
 }
 
 impl SettingsApp {
-    pub fn new(path: &str) -> Result<Self, SonioxLiveErrors> {
+    pub fn new(path: &str) -> SettingsApp {
         let path = Path::new(path);
-        if !path.exists() {
-            let s = Self::default();
-            let content = toml::to_string(&s)?;
-            std::fs::write(path, content)?;
-            return Ok(s);
+        let settings = match std::fs::read_to_string(path) {
+            Ok(content) => toml::from_str(&content).unwrap_or_else(|_| Self::default()),
+            Err(_) => Self::default(),
+        };
+        if let Ok(new_content) = toml::to_string_pretty(&settings) {
+            let _ = std::fs::write(path, new_content);
         }
-
-        let content = std::fs::read_to_string(path)?;
-        let s = toml::from_str(&content)?;
-        Ok(s)
+        settings
     }
 
     pub fn language_hints(&self) -> Arc<[LanguageHint]> {
@@ -142,7 +142,7 @@ impl SettingsApp {
     }
 
     pub fn save(&self, path: &str) -> Result<(), SonioxLiveErrors> {
-        let toml_string = toml::to_string(self)?;
+        let toml_string = toml::to_string_pretty(self)?;
         std::fs::write(path, toml_string)?;
 
         Ok(())
