@@ -55,8 +55,6 @@ impl TranscriptionService {
             receiver: rx_event,
         })
     }
-
-    pub fn listen() {}
 }
 
 impl Drop for TranscriptionService {
