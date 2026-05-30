@@ -3,29 +3,29 @@ name = "soniox_live"
 version = "2.1.2"
 edition = "2024"
 repository = "https://github.com/eoftgge/soniox_live"
-rust-version = "1.89.0"
+rust-version = "1.96.0"
 
 [dependencies]
 thiserror = "2.0.18"
-tungstenite = { version = "0.28.0", features = ["native-tls"] }
+tungstenite = { version = "0.29.0", features = ["native-tls"] }
 serde = { version = "1.0.228", features = ["derive", "rc"] }
-serde_json = "1.0.149"
-tokio-tungstenite = { version = "0.28.0", features = ["native-tls"] }
-tokio = { version = "1.49.0", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
-futures-util = "0.3.31"
-eframe = { version = "0.33.3", features = ["glow"] }
+serde_json = "1.0.150"
+tokio-tungstenite = { version = "0.29.0", features = ["native-tls"] }
+tokio = { version = "1.52.3", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
+futures-util = "0.3.32"
+eframe = { version = "0.34.3", features = ["glow"] }
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.22", features = ["fmt"] }
-tracing-appender = "0.2.4"
-toml = "1.0.0"
-egui-notify = "0.21.0"
-cpal = "0.17.1"
+tracing-subscriber = { version = "0.3.23", features = ["fmt"] }
+tracing-appender = "0.2.5"
+toml = "1.1.2"
+egui-notify = "0.22.0"
+cpal = "0.17.3"
 bytemuck = "1.25.0"
 embed_plist = "1.2.2"
 
 [build-dependencies]
 winres = "0.1.12"
-image = "0.25.9"
+image = "0.25.10"
 
 [profile.release]
 lto = true

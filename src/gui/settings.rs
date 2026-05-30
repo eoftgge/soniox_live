@@ -4,24 +4,24 @@ use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::LEVELS;
 use eframe::egui::{
-    self, Button, Checkbox, ComboBox, Context, DragValue, Grid, RichText, ScrollArea, Slider,
+    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
     TextEdit, Ui, vec2,
 };
 use egui_notify::Toasts;
 use std::time::Duration;
 
 pub fn show_settings_window(
-    ctx: &Context,
+    ui: &mut Ui,
     settings: &mut SettingsApp,
     manager: &mut StateManager,
     toasts: &mut Toasts,
     devices: &mut MappableAvailableDevices,
 ) {
-    ui_bottom_panel(ctx, settings, manager, toasts);
+    ui_bottom_panel(ui, settings, manager, toasts);
 
     egui::CentralPanel::default()
-        .frame(egui::Frame::central_panel(&ctx.style()).inner_margin(15.0))
-        .show(ctx, |ui| {
+        .frame(egui::Frame::central_panel(&ui.ctx().global_style()).inner_margin(15.0))
+        .show_inside(ui, |ui| {
             ui.spacing_mut().item_spacing = vec2(8.0, 12.0);
             ui.heading("Settings");
             ui.separator();
@@ -29,7 +29,7 @@ pub fn show_settings_window(
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_app(ui, settings, devices);
                 ui_section_api(ui, settings);
-                ui_section_position(ui, ctx, settings);
+                ui_section_position(ui, settings);
                 ui_section_appearance(ui, settings);
                 ui.allocate_space(vec2(0.0, 60.0));
             });
@@ -37,15 +37,15 @@ pub fn show_settings_window(
 }
 
 fn ui_bottom_panel(
-    ctx: &Context,
+    ui: &mut Ui,
     settings: &mut SettingsApp,
     manager: &mut StateManager,
     toasts: &mut Toasts,
 ) {
-    egui::TopBottomPanel::bottom("settings_bottom_panel")
+    egui::Panel::bottom("settings_bottom_panel")
         .resizable(false)
-        .min_height(60.0)
-        .show(ctx, |ui| {
+        .min_size(60.0)
+        .show_inside(ui, |ui| {
             ui.add_space(15.0);
             ui.columns(2, |cols| {
                 cols[0].vertical_centered_justified(|ui| {
@@ -190,7 +190,7 @@ fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
     });
 }
 
-fn ui_section_position(ui: &mut Ui, ctx: &Context, settings: &mut SettingsApp) {
+fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
     ui.collapsing("Position", |ui| {
         Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
@@ -225,7 +225,7 @@ fn ui_section_position(ui: &mut Ui, ctx: &Context, settings: &mut SettingsApp) {
                                     .min_size(vec2(30.0, 30.0));
 
                                 let response = if is_selected {
-                                    ui.add(button.fill(ctx.style().visuals.selection.bg_fill))
+                                    ui.add(button.fill(ui.ctx().global_style().visuals.selection.bg_fill))
                                 } else {
                                     ui.add(button)
                                 };

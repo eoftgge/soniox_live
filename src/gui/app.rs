@@ -6,9 +6,7 @@ use crate::transcription::service::TranscriptionService;
 use crate::transcription::store::TranscriptionStore;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::events::SonioxEvent;
-use eframe::egui::{
-    Align, Area, Context, Id, Layout, Order, ViewportCommand, Visuals, WindowLevel,
-};
+use eframe::egui::{Align, Area, Id, Layout, Order, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
@@ -74,10 +72,10 @@ impl SubtitlesApp {
 }
 
 impl App for SubtitlesApp {
-    fn update(&mut self, ctx: &Context, _: &mut Frame) {
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         if let Err(err) = self
             .manager
-            .resolve(ctx, &mut self.store, &self.settings, &self.devices)
+            .resolve(ui.ctx(), &mut self.store, &self.settings, &self.devices)
         {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
@@ -85,7 +83,7 @@ impl App for SubtitlesApp {
 
         match manager.app_state_mut() {
             AppState::Settings => show_settings_window(
-                ctx,
+                ui,
                 &mut self.settings,
                 manager,
                 &mut self.toasts,
@@ -93,10 +91,10 @@ impl App for SubtitlesApp {
             ),
             AppState::Overlay(service) => {
                 let timeout = Duration::from_secs(15);
-                let ctx_for_plan = ctx.clone();
                 self.store.clear_if_silent(timeout);
-                self.store.schedule(ctx_for_plan, timeout);
+                self.store.schedule(ui.ctx().clone(), timeout);
 
+                let ctx = ui.ctx();
                 process_events(service, &mut self.store, &mut self.toasts);
                 if self.settings.enable_high_priority() && self.frame_counter >= 100 {
                     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
@@ -122,7 +120,7 @@ impl App for SubtitlesApp {
             }
         }
 
-        self.toasts.show(ctx);
+        self.toasts.show(ui.ctx());
     }
 
     fn clear_color(&self, _visuals: &Visuals) -> [f32; 4] {
