@@ -70,7 +70,7 @@ impl MappableAvailableDevices {
         device.or_else(|| AvailableDevice::from_host(&self.0))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &AvailableDevice> {
+    pub fn iter(&self) -> impl Iterator<Item=&AvailableDevice> {
         self.1.iter()
     }
 }

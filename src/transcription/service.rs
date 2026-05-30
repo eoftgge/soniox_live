@@ -7,7 +7,7 @@ use crate::types::audio::AudioSample;
 use crate::types::device::MappableAvailableDevices;
 use crate::types::events::SonioxEvent;
 use eframe::egui::Context;
-use tokio::sync::mpsc::{Receiver, channel};
+use tokio::sync::mpsc::{channel, Receiver};
 
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,

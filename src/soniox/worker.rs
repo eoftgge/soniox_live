@@ -1,8 +1,9 @@
 use crate::errors::SonioxLiveErrors;
-use crate::soniox::URL;
 use crate::soniox::action::StreamAction;
 use crate::soniox::connection::SonioxConnection;
 use crate::soniox::session::{SonioxSessionReader, SonioxSessionWriter};
+use crate::soniox::URL;
+use crate::transcription::utils::is_silent;
 use crate::types::audio::AudioSample;
 use crate::types::events::SonioxEvent;
 use crate::types::soniox::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
@@ -10,7 +11,6 @@ use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;
 use tungstenite::{Bytes, Message};
-use crate::transcription::utils::is_silent;
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
@@ -215,11 +215,11 @@ impl SonioxWorker {
                 StreamAction::Continue
             }
             SonioxTranscriptionMessage::Error(e)
-                if ERROR_CODES_RECONNECT.contains(&e.error_code) =>
-            {
-                tracing::warn!("Temporary API Error {}: {}", e.error_code, e.error_message);
-                StreamAction::Reconnect
-            }
+            if ERROR_CODES_RECONNECT.contains(&e.error_code) =>
+                {
+                    tracing::warn!("Temporary API Error {}: {}", e.error_code, e.error_message);
+                    StreamAction::Reconnect
+                }
             SonioxTranscriptionMessage::Error(e) => {
                 tracing::error!("Fatal API Error {}: {}", e.error_code, e.error_message);
                 let _ = self
@@ -255,11 +255,11 @@ impl SonioxWorker {
             match self.rx_audio.recv().await {
                 Some(packet) if !is_silent(&packet, self.vad_threshold) => {
                     return Some(packet);
-                },
+                }
                 Some(mut packet) => {
                     packet.clear();
                     let _ = self.tx_recycle.send(packet).await;
-                },
+                }
                 None => {
                     tracing::info!("Audio channel closed by app. Stopping worker.");
                     return None;

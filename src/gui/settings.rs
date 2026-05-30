@@ -4,8 +4,8 @@ use crate::types::device::MappableAvailableDevices;
 use crate::types::languages::LanguageHint;
 use crate::types::tracing::LEVELS;
 use eframe::egui::{
-    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
-    TextEdit, Ui, vec2,
+    self, vec2, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea,
+    Slider, TextEdit, Ui,
 };
 use egui_notify::Toasts;
 use std::time::Duration;

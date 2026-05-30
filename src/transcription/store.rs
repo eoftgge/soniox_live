@@ -1,9 +1,9 @@
+use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
 use crate::types::soniox::SonioxTranscriptionResponse;
 use crate::types::subtitles::SubtitleBlock;
 use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
-use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
 
 pub struct TranscriptionStore {
     pub blocks: VecDeque<SubtitleBlock>,
@@ -48,7 +48,7 @@ impl TranscriptionStore {
 
                             is_space_boundary || is_cjk_boundary
                         }
-                    },
+                    }
                     None => true,
                     _ => false,
                 };

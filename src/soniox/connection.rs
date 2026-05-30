@@ -1,11 +1,11 @@
 use crate::errors::SonioxLiveErrors;
-use crate::soniox::WsStream;
 use crate::soniox::session::{SonioxSessionReader, SonioxSessionWriter};
+use crate::soniox::WsStream;
 use crate::types::soniox::SonioxTranscriptionRequest;
 use futures_util::StreamExt;
 use tokio_tungstenite::connect_async;
-use tungstenite::Utf8Bytes;
 use tungstenite::client::IntoClientRequest;
+use tungstenite::Utf8Bytes;
 
 pub struct SonioxConnection {
     ws_stream: WsStream,
