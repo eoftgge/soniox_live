@@ -27,7 +27,6 @@ impl TranscriptionStore {
         let mut current_interim_block: Option<SubtitleBlock> = None;
 
         for token in &response.tokens {
-            tracing::debug!("{:?}", token);
             if token.translation_status.as_deref() == Some("original") {
                 continue;
             }
