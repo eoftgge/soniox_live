@@ -15,12 +15,12 @@ use crate::transcription::utils::is_silent;
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
-const HANGOVER_CHUNKS_LIMIT: usize = 5;
 
 pub(crate) struct SonioxWorker {
     rx_audio: Receiver<AudioSample>,
     tx_recycle: Sender<AudioSample>,
     tx_event: Sender<SonioxEvent>,
+    hangover_chunks_limit: usize,
 }
 
 impl SonioxWorker {
@@ -28,11 +28,13 @@ impl SonioxWorker {
         rx_audio: Receiver<AudioSample>,
         tx_recycle: Sender<AudioSample>,
         tx_event: Sender<SonioxEvent>,
+        hangover_chunks_limit: usize,
     ) -> Self {
         Self {
             rx_audio,
             tx_event,
             tx_recycle,
+            hangover_chunks_limit,
         }
     }
 
@@ -124,7 +126,7 @@ impl SonioxWorker {
                     };
 
                     if !is_silent(&buffer) {
-                        hangover_counter = HANGOVER_CHUNKS_LIMIT;
+                        hangover_counter = self.hangover_chunks_limit;
                     } else if hangover_counter > 0 {
                         hangover_counter = hangover_counter.saturating_sub(1);
                     } else {

@@ -305,6 +305,10 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
                 ui.add(Slider::new(&mut settings.max_blocks, 1..=10));
                 ui.end_row();
 
+                ui.label("Hangover Chunks:");
+                ui.add(Slider::new(&mut settings.hangover_chunks, 1..=100));
+                ui.end_row();
+
                 ui.label("Font Size:");
                 ui.add(Slider::new(&mut settings.font_size, 10..=80));
                 ui.end_row();
