@@ -29,7 +29,7 @@ impl TranscriptionService {
         let (tx_audio, rx_audio) = channel::<AudioSample>(256);
         let (tx_recycle, rx_recycle) = channel::<AudioSample>(256);
         let tx_worker_2 = tx_worker.clone();
-        let worker = SonioxWorker::new(rx_audio, tx_recycle, tx_worker_2, settings.hangover_chunks);
+        let worker = SonioxWorker::new(rx_audio, tx_recycle, tx_worker_2, settings.hangover_chunks, settings.vad_threshold);
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
         let request = create_request(settings, audio.config())?;
         audio.play()?;

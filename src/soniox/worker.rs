@@ -21,6 +21,7 @@ pub(crate) struct SonioxWorker {
     tx_recycle: Sender<AudioSample>,
     tx_event: Sender<SonioxEvent>,
     hangover_chunks_limit: usize,
+    vad_threshold: f32,
 }
 
 impl SonioxWorker {
@@ -29,12 +30,14 @@ impl SonioxWorker {
         tx_recycle: Sender<AudioSample>,
         tx_event: Sender<SonioxEvent>,
         hangover_chunks_limit: usize,
+        vad_threshold: f32,
     ) -> Self {
         Self {
             rx_audio,
             tx_event,
             tx_recycle,
             hangover_chunks_limit,
+            vad_threshold,
         }
     }
 
@@ -125,7 +128,7 @@ impl SonioxWorker {
                         return StreamAction::Stop;
                     };
 
-                    if !is_silent(&buffer) {
+                    if !is_silent(&buffer, self.vad_threshold) {
                         hangover_counter = self.hangover_chunks_limit;
                     } else if hangover_counter > 0 {
                         hangover_counter = hangover_counter.saturating_sub(1);
@@ -250,7 +253,7 @@ impl SonioxWorker {
 
         loop {
             match self.rx_audio.recv().await {
-                Some(packet) if !is_silent(&packet) => {
+                Some(packet) if !is_silent(&packet, self.vad_threshold) => {
                     return Some(packet);
                 },
                 Some(mut packet) => {

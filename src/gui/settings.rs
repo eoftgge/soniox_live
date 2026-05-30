@@ -94,6 +94,14 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
             .num_columns(2)
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
+                ui.label("Hangover Chunks:");
+                ui.add(Slider::new(&mut settings.hangover_chunks, 0..=150));
+                ui.end_row();
+
+                ui.label("Threshold:");
+                ui.add(Slider::new(&mut settings.vad_threshold, 0f32..=2000f32));
+                ui.end_row();
+
                 ui.label("Log Level:");
                 ComboBox::from_id_salt("log_level")
                     .selected_text(settings.level.to_string())
@@ -303,10 +311,6 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
             .show(ui, |ui| {
                 ui.label("Max Blocks:");
                 ui.add(Slider::new(&mut settings.max_blocks, 1..=10));
-                ui.end_row();
-
-                ui.label("Hangover Chunks:");
-                ui.add(Slider::new(&mut settings.hangover_chunks, 1..=150));
                 ui.end_row();
 
                 ui.label("Font Size:");
