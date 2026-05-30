@@ -21,7 +21,7 @@ pub(crate) struct SonioxWorker {
     tx_recycle: Sender<AudioSample>,
     tx_event: Sender<SonioxEvent>,
     hangover_chunks_limit: usize,
-    vad_threshold: f32,
+    vad_threshold: u32,
 }
 
 impl SonioxWorker {
@@ -30,7 +30,7 @@ impl SonioxWorker {
         tx_recycle: Sender<AudioSample>,
         tx_event: Sender<SonioxEvent>,
         hangover_chunks_limit: usize,
-        vad_threshold: f32,
+        vad_threshold: u32,
     ) -> Self {
         Self {
             rx_audio,

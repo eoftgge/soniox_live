@@ -28,7 +28,7 @@ pub struct SettingsApp {
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) log_to_file: bool,
     pub(crate) hangover_chunks: usize,
-    pub(crate) vad_threshold: f32,
+    pub(crate) vad_threshold: u32,
 }
 
 impl Default for SettingsApp {
@@ -51,7 +51,7 @@ impl Default for SettingsApp {
             device_id: None,
             log_to_file: false,
             hangover_chunks: 5,
-            vad_threshold: 100.,
+            vad_threshold: 100,
         }
     }
 }

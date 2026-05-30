@@ -7,17 +7,17 @@ pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>) {
     output.extend(input.iter().map(|&s| (s.clamp(-1.0, 1.0) * SCALE) as i16));
 }
 
-pub fn is_silent(buffer: &[i16], threshold: f32) -> bool {
+pub fn is_silent(buffer: &[i16], threshold: u32) -> bool {
     if buffer.is_empty() { return true; }
 
-    let mut sum_squares = 0.0;
+    let mut sum_squares = 0u64;
     for &sample in buffer {
-        let s = sample as f32;
-        sum_squares += s.powi(2);
+        let s = sample as i32;
+        sum_squares += s.pow(2) as u64;
     }
 
-    let rms = (sum_squares / buffer.len() as f32).sqrt();
-    rms < threshold
+    let limit = (threshold as u64).pow(2) * (buffer.len() as u64);
+    sum_squares < limit
 }
 
 pub fn is_punctuation_or_symbol(s: &str) -> bool {
