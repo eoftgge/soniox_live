@@ -2,12 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum OmniSttErrors {
-    #[error("Audio output stream creation failed: {0}")]
-    AudioBuildStream(#[from] cpal::BuildStreamError),
-    #[error("Audio playback failure: {0}")]
-    AudioPlayStream(#[from] cpal::PlayStreamError),
-    #[error("Failed to get default audio config: {0}")]
-    AudioConfig(#[from] cpal::DefaultStreamConfigError),
+    #[error("Audio error: {0}")]
+    Audio(#[from] cpal::Error),
     #[error("WebSocket connection error: {0}")]
     WebSocket(#[from] tungstenite::Error),
     #[error("Server connection lost (Heartbeat failed)")]

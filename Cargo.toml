@@ -19,7 +19,7 @@ tracing-subscriber = { version = "0.3.23", features = ["fmt"] }
 tracing-appender = "0.2.5"
 toml = "1.1.2"
 egui-notify = "0.22.0"
-cpal = "0.17.3"
+cpal = "0.18.1"
 bytemuck = "1.25.0"
 embed_plist = "1.2.2"
 async-trait = "0.1.89"

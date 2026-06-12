@@ -29,7 +29,7 @@ impl AudioSession {
         let channel = config.channels;
         let sample_rate = config.sample_rate;
         let stream = device.build_input_stream(
-            &config,
+            config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 let mut temp_buffer = Vec::with_capacity(data.len());
                 convert_audio_chunk(data, &mut temp_buffer, channel, sample_rate);
@@ -70,11 +70,11 @@ impl AudioSession {
         &self.config
     }
 
-    pub fn play(&self) -> Result<(), cpal::PlayStreamError> {
+    pub fn play(&self) -> Result<(), cpal::Error> {
         self.stream.play()
     }
 
-    pub fn pause(&self) -> Result<(), cpal::PauseStreamError> {
+    pub fn pause(&self) -> Result<(), cpal::Error> {
         self.stream.pause()
     }
 }
