@@ -9,7 +9,6 @@ use tokio::time::sleep;
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
-const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 
 pub struct GenericSttWorker {
     rx_audio: Receiver<AudioSample>,
@@ -21,6 +20,17 @@ pub struct GenericSttWorker {
 }
 
 impl GenericSttWorker {
+    pub fn new(rx_audio: Receiver<AudioSample>, tx_recycle: Sender<AudioSample>, tx_event: Sender<SttEvent>, hangover_chunks_limit: usize, vad_threshold: u32, provider: Box<dyn SttProvider>) -> Self {
+        Self {
+            rx_audio,
+            tx_recycle,
+            tx_event,
+            hangover_chunks_limit,
+            vad_threshold,
+            provider,
+        }
+    }
+
     pub(crate) async fn run(mut self) -> Result<(), SttError> {
         let mut retry_count = 0;
         let mut flag_first_connection = true;
@@ -33,7 +43,7 @@ impl GenericSttWorker {
                 Vec::new()
             };
 
-            if let Err(e) = self.provider.connect().await {
+            if self.provider.connect().await.is_err() {
                 self.handle_reconnect(&mut retry_count).await?;
                 continue;
             }

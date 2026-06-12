@@ -1,6 +1,6 @@
 use crate::gui::color::get_interim_color;
 use crate::transcription::replicas::{prepare_replicas, VisualReplica};
-use crate::transcription::store::TranscriptionStore;
+use crate::stt::store::TranscriptionStore;
 use eframe::egui::text::LayoutJob;
 use eframe::egui::{Color32, FontId, Frame, LayerId, Order, Rect, Stroke, TextFormat, Ui, Vec2};
 use eframe::epaint::StrokeKind;

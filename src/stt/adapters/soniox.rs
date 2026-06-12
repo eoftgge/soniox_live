@@ -1,5 +1,6 @@
 pub mod connection;
 pub mod session;
+pub mod request;
 
 use async_trait::async_trait;
 use std::collections::VecDeque;

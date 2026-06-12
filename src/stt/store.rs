@@ -1,5 +1,4 @@
 use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
-use crate::types::soniox::SonioxTranscriptionResponse;
 use crate::types::subtitles::SubtitleBlock;
 use eframe::egui::Context;
 use std::collections::VecDeque;

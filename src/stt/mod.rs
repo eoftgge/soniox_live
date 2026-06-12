@@ -4,6 +4,7 @@ pub mod worker;
 pub mod action;
 pub mod data;
 pub mod utils;
+pub mod factory;
 pub mod adapters;
 pub mod store;
 

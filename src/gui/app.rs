@@ -3,14 +3,14 @@ use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, StateManager};
 use crate::settings::SettingsApp;
 use crate::transcription::service::TranscriptionService;
-use crate::transcription::store::TranscriptionStore;
+use crate::stt::store::TranscriptionStore;
 use crate::types::device::MappableAvailableDevices;
-use crate::types::events::SonioxEvent;
 use eframe::egui::{Align, Area, Id, Layout, Order, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
+use crate::stt::event::SttEvent;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -19,29 +19,35 @@ fn process_events(
 ) {
     while let Ok(event) = service.receiver.try_recv() {
         match event {
-            SonioxEvent::Transcription(r) => {
-                store.update(r);
+            SttEvent::Transcript(data) => {
+                store.update(data);
             }
-            SonioxEvent::Warning(s) => {
+            SttEvent::Warning(msg) => {
                 toasts
-                    .warning(s.to_string())
+                    .warning(msg)
                     .duration(Duration::from_secs(4))
                     .closable(false);
             }
-            SonioxEvent::Error(e) => {
+            SttEvent::Error(err) => {
                 toasts
-                    .error(e.to_string())
+                    .error(err.to_string())
                     .duration(Duration::from_secs(4))
                     .closable(false);
             }
-            SonioxEvent::Connected(flag_first_connection) => {
+            SttEvent::Connected(flag_first_connection) => {
                 store.ensure_separator();
                 if flag_first_connection {
                     toasts
-                        .info("Connected to Soniox!")
+                        .info("Connected to speech server!")
                         .duration(Duration::from_secs(4))
                         .closable(false);
                 }
+            }
+            SttEvent::Disconnected => {
+                toasts
+                    .warning("Connection lost. Reconnecting...")
+                    .duration(Duration::from_secs(2))
+                    .closable(false);
             }
         };
     }
