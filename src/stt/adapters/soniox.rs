@@ -8,9 +8,10 @@ use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
 use crate::stt::prelude::{SttError, SttEvent, SttProvider, TranscriptData};
-use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
+use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
+use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
@@ -21,8 +22,6 @@ pub struct SonioxAdapter {
     writer: Option<SonioxSessionWriter>,
     reader: Option<SonioxSessionReader>,
 
-    current_sentence: String,
-    current_speaker: Option<String>,
     event_queue: VecDeque<SttEvent>,
 }
 
@@ -32,9 +31,91 @@ impl SonioxAdapter {
             request,
             writer: None,
             reader: None,
-            current_sentence: String::new(),
-            current_speaker: None,
             event_queue: VecDeque::new(),
+        }
+    }
+
+    async fn handle_ws_message(&mut self, msg: Message) -> Result<Option<SttEvent>, SttError> {
+        match msg {
+            Message::Text(txt) => self.handle_text_message(&txt),
+            Message::Ping(data) => {
+                if let Some(writer) = self.writer.as_mut() {
+                    let _ = writer.send_pong(data).await;
+                }
+                Ok(None)
+            }
+            Message::Close(_) => {
+                tracing::warn!("Server sent Close frame");
+                Ok(Some(SttEvent::Disconnected))
+            }
+            _ => Ok(None),
+        }
+    }
+    fn handle_text_message(&mut self, txt: &str) -> Result<Option<SttEvent>, SttError> {
+        let parsed_msg: SonioxTranscriptionMessage = serde_json::from_str(txt)
+            .map_err(|e| SttError::FatalAPIError(format!("JSON parse error: {}", e)))?;
+
+        match parsed_msg {
+            SonioxTranscriptionMessage::Response(r) => {
+                self.enqueue_tokens(r.tokens);
+                Ok(self.event_queue.pop_front())
+            }
+            SonioxTranscriptionMessage::Error(e) => {
+                if ERROR_CODES_RECONNECT.contains(&e.error_code) {
+                    Err(SttError::RecoverableAPIError(e.error_message))
+                } else {
+                    Err(SttError::FatalAPIError(e.error_message))
+                }
+            }
+        }
+    }
+
+    fn enqueue_tokens(&mut self, tokens: Vec<SonioxTranscriptionToken>) {
+        let mut final_text = String::new();
+        let mut interim_text = String::new();
+        let mut current_speaker = None;
+
+        for token in tokens {
+            if token.translation_status.as_deref() == Some("original") {
+                continue;
+            }
+
+            let token_speaker = token.speaker.clone();
+
+            if current_speaker.is_some() && current_speaker != token_speaker {
+                self.flush_buffers(&mut final_text, &mut interim_text, &current_speaker);
+            }
+
+            current_speaker = token_speaker;
+            if token.is_final {
+                final_text.push_str(&token.text);
+            } else {
+                interim_text.push_str(&token.text);
+            }
+        }
+
+        self.flush_buffers(&mut final_text, &mut interim_text, &current_speaker);
+    }
+
+    fn flush_buffers(
+        &mut self,
+        final_text: &mut String,
+        interim_text: &mut String,
+        speaker: &Option<String>,
+    ) {
+        if !final_text.is_empty() {
+            self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
+                text: std::mem::take(final_text),
+                is_final: true,
+                speaker: speaker.clone(),
+            }));
+        }
+        if !interim_text.is_empty() {
+            self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
+                text: std::mem::take(interim_text),
+                is_final: false,
+                speaker: speaker.clone(),
+            }));
         }
     }
 }
@@ -49,9 +130,9 @@ impl SttProvider for SonioxAdapter {
             .into_session(&self.request)
             .await
             .map_err(|_| SttError::ConnectionLost)?;
+
         self.writer = Some(w);
         self.reader = Some(r);
-        self.current_sentence.clear();
         self.event_queue.clear();
         Ok(())
     }
@@ -69,75 +150,17 @@ impl SttProvider for SonioxAdapter {
             return Ok(event);
         }
 
-        let reader = self.reader.as_mut().ok_or(SttError::ConnectionLost)?;
-        let writer = self.writer.as_mut().ok_or(SttError::ConnectionLost)?;
         loop {
-            let msg = reader.recv_message().await.map_err(|e| {
-                tracing::error!("WS Error/EOF: {}", e);
-                SttError::ConnectionLost
-            })?;
-
-            match msg {
-                Message::Text(txt) => {
-                    let parsed_msg: SonioxTranscriptionMessage = serde_json::from_str(&txt)
-                        .map_err(|e| SttError::FatalAPIError(format!("JSON parse error: {}", e)))?;
-
-                    match parsed_msg {
-                        SonioxTranscriptionMessage::Response(r) => {
-                            let mut has_interim = false;
-
-                            for token in r.tokens {
-                                if token.translation_status.as_deref() == Some("original") {
-                                    continue;
-                                }
-
-                                self.current_speaker = token.speaker.clone();
-                                self.current_sentence.push_str(&token.text);
-
-                                if token.is_final {
-                                    self.event_queue.push_back(SttEvent::Transcript(
-                                        TranscriptData {
-                                            text: self.current_sentence.clone(),
-                                            is_final: true,
-                                            speaker: self.current_speaker.clone(),
-                                        },
-                                    ));
-                                    self.current_sentence.clear();
-                                } else {
-                                    has_interim = true;
-                                }
-                            }
-
-                            if has_interim && !self.current_sentence.is_empty() {
-                                self.event_queue
-                                    .push_back(SttEvent::Transcript(TranscriptData {
-                                        text: self.current_sentence.clone(),
-                                        is_final: false,
-                                        speaker: self.current_speaker.clone(),
-                                    }));
-                            }
-
-                            if let Some(event) = self.event_queue.pop_front() {
-                                return Ok(event);
-                            }
-                        }
-                        SonioxTranscriptionMessage::Error(e) => {
-                            return if ERROR_CODES_RECONNECT.contains(&e.error_code) {
-                                Err(SttError::RecoverableAPIError(e.error_message))
-                            } else {
-                                Err(SttError::FatalAPIError(e.error_message))
-                            };
-                        }
-                    }
-                }
-                Message::Ping(data) => {
-                    let _ = writer.send_pong(data).await;
-                }
-                Message::Close(_) => {
-                    tracing::warn!("Server sent Close frame");
-                    return Ok(SttEvent::Disconnected);
-                }
-                _ => continue,
+            let msg = {
+                let reader = self.reader.as_mut().ok_or(SttError::ConnectionLost)?;
+                reader.recv_message().await.map_err(|e| {
+                    tracing::error!("WS Error/EOF: {}", e);
+                    SttError::ConnectionLost
+                })?
+            };
+            
+            if let Some(event) = self.handle_ws_message(msg).await? {
+                return Ok(event);
             }
         }
     }
