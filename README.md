@@ -1,27 +1,35 @@
-# Soniox Live: Subtitles
+# Omni-STT
 
-**The cross-platform advanced AI-based Soniox application that draws subtitles on the screen.**
+**A cross-platform, modular AI-based application for real-time subtitling.**
 
-#### Features
-* Transparent overlay: Subtitles are displayed on top of all windows without interfering with the work.
-* "Always on Top" mode: The window always remains visible.
-* Click-through: In overlay mode, the program passes mouse clicks through itself (Mouse Passthrough).
-* High performance: Written in Rust using RAII for resource management.
-* Customization: Adjust the font size, text color to suit your needs.
+Omni-STT bridges the gap between your voice and the screen, providing real-time AI-powered transcription directly over any active window. Designed with a modular architecture, it currently supports Soniox as the primary transcription provider, with plans for extensible support for other AI models.
+
+Key Features
+* Transparent Overlay: Subtitles are displayed on top of all windows without interfering with your work.
+* Always on Top: The subtitle window remains visible regardless of active application.
+* Mouse Passthrough: Interact with windows beneath the subtitles via click-through support.
+* High Performance: Written in Rust with a focus on low-latency resource management (RAII).
+* Highly Customizable: Adjust font size, text color, and layout to suit your workflow.
+* Modular Architecture: Easily switch between different AI providers as your needs change.
 
 ### Launch
 
 For build and start, you need [Rust Compiler](https://rust-lang.org/tools/install/)
 
 ```terminaloutput
->>> git clone https://github.com/eoftgge/soniox_live.git
+>>> git clone https://github.com/eoftgge/omni-stt.git
 >>> cd soniox_live
 >>> cargo build --release
-// in directory target/release appear file .exe, and move it file to the your directory
-// and run normally execution file. maybe, the antivirus will complain. it's normal
 ```
+**Note:** After building, you will find the executable in target/release/. Move it to your preferred directory.
+Antivirus software may flag the executable due to its ability to draw overlays — this is normal.
 
-And you can also use binaries from [GitHub Releases](https://github.com/eoftgge/soniox_windows/releases) <br>
-And run. Enjoy :)
+### Releases
+You can also download the latest pre-compiled binaries from the [GitHub Releases page](https://github.com/eoftgge/omni-stt.git).
 
-If you have any problems, don't hesitate to ask in the Issues section
+## Supported Providers
+* Soniox: Integrated and ready to use.
+* More providers (Vosk, Google, etc.) are coming soon!
+
+### Support
+If you encounter any issues or have feature requests, please check the [Issues section](https://github.com/eoftgge/omni-stt/issues) on GitHub.
