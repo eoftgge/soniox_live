@@ -7,7 +7,7 @@ pub mod gui;
 pub mod settings;
 pub mod stt;
 pub mod transcription;
-pub mod types;
+pub mod tracing;
 
 pub fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
     let (writer, guard) = if log_to_file {

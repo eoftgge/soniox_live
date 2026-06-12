@@ -1,6 +1,6 @@
 use super::session::{SonioxSessionReader, SonioxSessionWriter, WsStream};
 use crate::errors::SonioxLiveErrors;
-use crate::types::soniox::SonioxTranscriptionRequest;
+use super::types::SonioxTranscriptionRequest;
 use futures_util::StreamExt;
 use tokio_tungstenite::connect_async;
 use tungstenite::Utf8Bytes;

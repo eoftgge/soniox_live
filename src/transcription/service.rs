@@ -3,9 +3,8 @@ use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_provider;
 use crate::stt::worker::GenericSttWorker;
-use crate::transcription::audio::AudioSession;
-use crate::types::audio::AudioSample;
-use crate::types::device::MappableAvailableDevices;
+use crate::transcription::audio::{AudioSample, AudioSession};
+use crate::transcription::device::MappableAvailableDevices;
 use tokio::sync::mpsc::{Receiver, channel};
 use tokio_util::sync::CancellationToken;
 

@@ -5,7 +5,7 @@ use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::service::TranscriptionService;
-use crate::types::device::MappableAvailableDevices;
+use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{Align, Area, Id, Layout, Order, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::{App, Frame};
 use egui_notify::Toasts;

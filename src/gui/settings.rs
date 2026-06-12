@@ -1,8 +1,8 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::settings::SettingsApp;
-use crate::types::device::MappableAvailableDevices;
-use crate::types::languages::LanguageHint;
-use crate::types::tracing::LEVELS;
+use crate::transcription::device::MappableAvailableDevices;
+use crate::stt::languages::LanguageHint;
+use crate::tracing::LEVELS;
 use eframe::egui::{
     self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
     vec2,

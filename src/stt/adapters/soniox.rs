@@ -1,13 +1,14 @@
 pub mod connection;
 pub mod request;
 pub mod session;
+pub mod types;
 
 use async_trait::async_trait;
 use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
 use crate::stt::prelude::{SttError, SttEvent, SttProvider, TranscriptData};
-use crate::types::soniox::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
+use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 

@@ -7,6 +7,7 @@ pub mod provider;
 pub mod store;
 pub mod utils;
 pub mod worker;
+pub mod languages;
 
 pub mod prelude {
     pub use super::{

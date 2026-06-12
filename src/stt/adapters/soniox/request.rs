@@ -1,7 +1,7 @@
 use crate::errors::SonioxLiveErrors;
 use crate::settings::SettingsApp;
 use crate::stt::adapters::soniox::MODEL;
-use crate::types::soniox::{SonioxTranscriptionRequest, SonioxTranslationObject};
+use super::types::{SonioxTranscriptionRequest, SonioxTranslationObject};
 use cpal::StreamConfig;
 
 pub(crate) fn create_request(

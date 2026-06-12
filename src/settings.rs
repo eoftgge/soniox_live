@@ -1,7 +1,7 @@
 use crate::errors::SonioxLiveErrors;
-use crate::types::device::SettingDeviceId;
-use crate::types::languages::LanguageHint;
-use crate::types::tracing::TracingLevel;
+use crate::transcription::device::SettingDeviceId;
+use crate::stt::languages::LanguageHint;
+use crate::tracing::TracingLevel;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use eframe::epaint::Rgba;
 use serde::{Deserialize, Serialize};

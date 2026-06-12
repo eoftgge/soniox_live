@@ -2,7 +2,7 @@ use crate::stt::action::StreamAction;
 use crate::stt::event::{SttError, SttEvent};
 use crate::stt::provider::SttProvider;
 use crate::stt::utils::is_silent;
-use crate::types::audio::AudioSample;
+use crate::transcription::audio::AudioSample;
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;

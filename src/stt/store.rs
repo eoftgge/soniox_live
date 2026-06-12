@@ -1,6 +1,6 @@
 use crate::stt::data::TranscriptData;
 use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
-use crate::types::subtitles::SubtitleBlock;
+use crate::transcription::subtitles::SubtitleBlock;
 use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
