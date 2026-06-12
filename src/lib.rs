@@ -5,7 +5,6 @@ use tracing_subscriber::fmt::writer::BoxMakeWriter;
 pub mod errors;
 pub mod gui;
 pub mod settings;
-pub mod soniox;
 
 pub mod stt;
 pub mod transcription;

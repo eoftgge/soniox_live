@@ -1,3 +1,12 @@
+const SCALE: f32 = i16::MAX as f32;
+
+pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>) {
+    if !output.is_empty() {
+        output.clear();
+    }
+    output.extend(input.iter().map(|&s| (s.clamp(-1.0, 1.0) * SCALE) as i16));
+}
+
 pub fn is_punctuation_or_symbol(s: &str) -> bool {
     let s = s.trim();
     if s.is_empty() { return false; }
@@ -12,3 +21,4 @@ pub fn is_cjk(c: char) -> bool {
         (0x30A0..=0x30FF).contains(&u) ||
         (0xAC00..=0xD7AF).contains(&u)
 }
+
