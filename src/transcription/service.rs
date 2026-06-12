@@ -1,64 +1,105 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
-use crate::soniox::request::create_request;
-use crate::soniox::worker::SonioxWorker;
-use crate::transcription::audio::AudioSession;
-use crate::types::audio::AudioSample;
-use crate::types::device::MappableAvailableDevices;
-use crate::types::events::SonioxEvent;
-use eframe::egui::Context;
-use tokio::sync::mpsc::{channel, Receiver};
+use crate::stt::event::SttEvent;
+use crate::stt::factory::create_stt_provider;
+use crate::stt::worker::GenericSttWorker;
+use crate::transcription::audio::{AudioSample, AudioSession};
+use crate::transcription::device::MappableAvailableDevices;
+use tokio::sync::mpsc::{Receiver, channel};
+use tokio_util::sync::CancellationToken;
 
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,
-    pub receiver: Receiver<SonioxEvent>,
-    handle: tokio::task::JoinHandle<()>,
+    pub receiver: Receiver<SttEvent>,
+    cancel_token: CancellationToken,
+    worker_handle: tokio::task::JoinHandle<()>,
+    proxy_handle: tokio::task::JoinHandle<()>,
 }
 
 impl TranscriptionService {
-    pub fn start(
-        ctx: Context,
+    pub fn start<F>(
         settings: &SettingsApp,
         devices: &MappableAvailableDevices,
-    ) -> Result<Self, SonioxLiveErrors> {
+        on_new_event: F,
+    ) -> Result<Self, OmniSttErrors>
+    where
+        F: Fn() + Send + Sync + 'static,
+    {
         let device = devices
             .to_output_device(settings.device_id.as_ref())
-            .ok_or(SonioxLiveErrors::NotFoundOutputDevice)?;
-        let (tx_worker, mut rx_worker) = channel::<SonioxEvent>(128);
-        let (tx_event, rx_event) = channel::<SonioxEvent>(128);
-        let (tx_audio, rx_audio) = channel::<AudioSample>(256);
-        let (tx_recycle, rx_recycle) = channel::<AudioSample>(256);
-        let tx_worker_2 = tx_worker.clone();
-        let worker = SonioxWorker::new(rx_audio, tx_recycle, tx_worker_2, settings.hangover_chunks, settings.vad_threshold);
+            .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
+
+        let cancel_token = CancellationToken::new();
+
+        let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
+        let (tx_event, rx_event) = channel::<SttEvent>(128);
+        let (tx_audio, rx_audio) = channel::<AudioSample>(2048);
+        let (tx_recycle, rx_recycle) = channel::<AudioSample>(2048);
+
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
-        let request = create_request(settings, audio.config())?;
+
+        let provider = create_stt_provider(settings, audio.config()).unwrap();
+        let tx_worker_2 = tx_worker.clone();
+        let worker = GenericSttWorker::new(
+            rx_audio,
+            tx_recycle,
+            tx_worker_2,
+            settings.hangover_chunks,
+            settings.vad_threshold,
+            provider,
+        );
+
         audio.play()?;
 
-        let handle = tokio::spawn(async move {
-            if let Err(e) = worker.run(&request).await {
-                tracing::error!("WebSocket error: {:?}", e);
-                let _ = tx_worker.send(SonioxEvent::Error(e)).await;
+        let worker_cancel = cancel_token.clone();
+        let worker_handle = tokio::spawn(async move {
+            tokio::select! {
+                res = worker.run() => {
+                    if let Err(e) = res {
+                        tracing::error!("Worker error: {:?}", e);
+                        let _ = tx_worker.send(SttEvent::Error(e)).await;
+                    }
+                }
+                _ = worker_cancel.cancelled() => {
+                    tracing::info!("Worker cancelled gracefully via token");
+                }
             }
         });
-        tokio::spawn(async move {
-            while let Some(event) = rx_worker.recv().await {
-                if tx_event.send(event).await.is_err() {
-                    break;
+
+        let proxy_cancel = cancel_token.clone();
+        let proxy_handle = tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    Some(event) = rx_worker.recv() => {
+                        if tx_event.send(event).await.is_err() {
+                            break;
+                        }
+                        on_new_event();
+                    }
+                    _ = proxy_cancel.cancelled() => {
+                        tracing::info!("Proxy task cancelled gracefully");
+                        break;
+                    }
+                    else => break,
                 }
-                ctx.request_repaint();
             }
         });
 
         Ok(Self {
             _audio: audio,
-            handle,
             receiver: rx_event,
+            cancel_token,
+            worker_handle,
+            proxy_handle,
         })
     }
 }
 
 impl Drop for TranscriptionService {
     fn drop(&mut self) {
-        self.handle.abort();
+        tracing::debug!("Dropping TranscriptionService, cancelling tasks...");
+        self.cancel_token.cancel();
+        self.worker_handle.abort();
+        self.proxy_handle.abort();
     }
 }

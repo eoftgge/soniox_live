@@ -2,16 +2,16 @@
 
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::icon_data::from_png_bytes;
-use soniox_live::errors::SonioxLiveErrors;
-use soniox_live::gui::app::SubtitlesApp;
-use soniox_live::gui::fonts::setup_custom_fonts;
-use soniox_live::settings::SettingsApp;
-use soniox_live::setup_tracing;
+use omni_stt::errors::OmniSttErrors;
+use omni_stt::gui::app::SubtitlesApp;
+use omni_stt::gui::fonts::setup_custom_fonts;
+use omni_stt::settings::SettingsApp;
+use omni_stt::setup_tracing;
 
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
-fn run() -> Result<(), SonioxLiveErrors> {
-    let settings = SettingsApp::new("soniox.toml");
+fn run() -> Result<(), OmniSttErrors> {
+    let settings = SettingsApp::new("omni.toml");
     let level = settings.level();
     let guard = setup_tracing(level, settings.log_to_file());
     let app = SubtitlesApp::new(settings, guard);
@@ -34,7 +34,7 @@ fn run() -> Result<(), SonioxLiveErrors> {
 
     tracing::info!("Starting application");
     let res = eframe::run_native(
-        "Soniox Live",
+        "OmniStt",
         native_options,
         Box::new(move |cc| {
             setup_custom_fonts(&cc.egui_ctx);

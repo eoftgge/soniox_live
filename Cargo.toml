@@ -1,5 +1,5 @@
 [package]
-name = "soniox_live"
+name = "omni-stt"
 version = "2.2.0"
 edition = "2024"
 repository = "https://github.com/eoftgge/soniox_live"
@@ -22,6 +22,8 @@ egui-notify = "0.22.0"
 cpal = "0.17.3"
 bytemuck = "1.25.0"
 embed_plist = "1.2.2"
+async-trait = "0.1.89"
+tokio-util = "0.7.18"
 
 [build-dependencies]
 winres = "0.1.12"

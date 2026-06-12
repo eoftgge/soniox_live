@@ -1,8 +1,8 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
+use crate::stt::store::TranscriptionStore;
 use crate::transcription::service::TranscriptionService;
-use crate::transcription::store::TranscriptionStore;
-use crate::types::device::MappableAvailableDevices;
+use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{Context, ViewportCommand, WindowLevel};
 
 pub struct StateManager {
@@ -45,7 +45,7 @@ impl StateManager {
         store: &mut TranscriptionStore,
         settings: &SettingsApp,
         devices: &MappableAvailableDevices,
-    ) -> Result<(), SonioxLiveErrors> {
+    ) -> Result<(), OmniSttErrors> {
         let Some(resolved) = self.pending_state.take() else {
             return Ok(());
         };
@@ -55,7 +55,8 @@ impl StateManager {
             PendingState::Settings => self.app_state = AppState::Settings,
             PendingState::Overlay => {
                 let ctx = ctx.clone();
-                let service = TranscriptionService::start(ctx, settings, devices)?;
+                let service =
+                    TranscriptionService::start(settings, devices, move || ctx.request_repaint())?;
                 store.resize(settings.max_blocks);
                 self.app_state = AppState::Overlay(service);
             }

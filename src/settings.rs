@@ -1,11 +1,11 @@
-use crate::errors::SonioxLiveErrors;
-use crate::types::device::SettingDeviceId;
-use crate::types::languages::LanguageHint;
-use crate::types::tracing::TracingLevel;
-use eframe::egui::{vec2, Align2, Color32, Vec2};
+use crate::errors::OmniSttErrors;
+use crate::transcription::device::SettingDeviceId;
+use crate::stt::languages::LanguageHint;
+use crate::logger::TracingLevel;
+use eframe::egui::{Align2, Color32, Vec2, vec2};
 use eframe::epaint::Rgba;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::Level;
 
@@ -29,6 +29,8 @@ pub struct SettingsApp {
     pub(crate) log_to_file: bool,
     pub(crate) hangover_chunks: usize,
     pub(crate) vad_threshold: u32,
+    #[serde(skip)]
+    pub(crate) path: Option<PathBuf>,
 }
 
 impl Default for SettingsApp {
@@ -52,20 +54,22 @@ impl Default for SettingsApp {
             log_to_file: false,
             hangover_chunks: 5,
             vad_threshold: 100,
+            path: None,
         }
     }
 }
 
 impl SettingsApp {
     pub fn new(path: &str) -> SettingsApp {
-        let path = Path::new(path);
-        let settings = match std::fs::read_to_string(path) {
+        let path = PathBuf::from(path);
+        let mut settings = match std::fs::read_to_string(&path) {
             Ok(content) => toml::from_str(&content).unwrap_or_else(|_| Self::default()),
             Err(_) => Self::default(),
         };
         if let Ok(new_content) = toml::to_string_pretty(&settings) {
-            let _ = std::fs::write(path, new_content);
+            let _ = std::fs::write(&path, new_content);
         }
+        settings.path = Some(path);
         settings
     }
 
@@ -143,7 +147,8 @@ impl SettingsApp {
         (align, vec2(self.offset.0, self.offset.1))
     }
 
-    pub fn save(&self, path: &str) -> Result<(), SonioxLiveErrors> {
+    pub fn save(&self) -> Result<(), OmniSttErrors> {
+        let path = self.path.clone().expect("path");
         let toml_string = toml::to_string_pretty(self)?;
         std::fs::write(path, toml_string)?;
 

@@ -1,4 +1,4 @@
-use crate::types::languages::LanguageHint;
+use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 

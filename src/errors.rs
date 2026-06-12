@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum SonioxLiveErrors {
+pub enum OmniSttErrors {
     #[error("Audio output stream creation failed: {0}")]
     AudioBuildStream(#[from] cpal::BuildStreamError),
     #[error("Audio playback failure: {0}")]
@@ -30,8 +30,8 @@ pub enum SonioxLiveErrors {
     API(usize, String),
 }
 
-impl From<&str> for SonioxLiveErrors {
+impl From<&str> for OmniSttErrors {
     fn from(s: &str) -> Self {
-        SonioxLiveErrors::Internal(s.to_string())
+        OmniSttErrors::Internal(s.to_string())
     }
 }

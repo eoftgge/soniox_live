@@ -1,4 +1,4 @@
-use crate::transcription::store::TranscriptionStore;
+use crate::stt::store::TranscriptionStore;
 
 pub struct VisualReplica<'a> {
     pub speaker: Option<&'a str>,

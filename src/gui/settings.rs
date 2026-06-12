@@ -1,11 +1,11 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::settings::SettingsApp;
-use crate::types::device::MappableAvailableDevices;
-use crate::types::languages::LanguageHint;
-use crate::types::tracing::LEVELS;
+use crate::transcription::device::MappableAvailableDevices;
+use crate::stt::languages::LanguageHint;
+use crate::logger::LEVELS;
 use eframe::egui::{
-    self, vec2, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea,
-    Slider, TextEdit, Ui,
+    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
+    vec2,
 };
 use egui_notify::Toasts;
 use std::time::Duration;
@@ -53,7 +53,7 @@ fn ui_bottom_panel(
                         .add(Button::new("💾 Save").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        match settings.save("soniox.toml") {
+                        match settings.save() {
                             Ok(_) => {
                                 toasts
                                     .success("Settings saved successfully!")
@@ -232,11 +232,14 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
                                 let button = Button::new(RichText::new(text).size(16.0))
                                     .min_size(vec2(30.0, 30.0));
 
-                                let response = if is_selected {
-                                    ui.add(button.fill(ui.ctx().global_style().visuals.selection.bg_fill))
-                                } else {
-                                    ui.add(button)
-                                };
+                                let response =
+                                    if is_selected {
+                                        ui.add(button.fill(
+                                            ui.ctx().global_style().visuals.selection.bg_fill,
+                                        ))
+                                    } else {
+                                        ui.add(button)
+                                    };
                                 if response.clicked() {
                                     settings.anchor = anchor_val;
                                     settings.offset = default_offset;
