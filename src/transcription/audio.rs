@@ -23,6 +23,8 @@ impl AudioSession {
         mut rx_recycle: Receiver<AudioSample>,
     ) -> Result<Self, OmniSttErrors> {
         let config = device.default_output_config()?.config();
+        let target_samples = (config.sample_rate as f32 * config.channels as f32 * 0.2) as usize;
+        let mut accumulator = Vec::with_capacity(target_samples);
         let stream = device.build_input_stream(
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
@@ -31,13 +33,27 @@ impl AudioSession {
                     Err(_) => Vec::with_capacity(data.len()),
                 };
                 convert_audio_chunk(data, &mut buffer);
-                match tx_audio.try_send(buffer) {
-                    Ok(_) => {}
-                    Err(TrySendError::Full(_)) => {
-                        tracing::debug!("Audio buffer is full");
-                    }
-                    Err(TrySendError::Closed(_)) => {
-                        tracing::debug!("Capture channel closed");
+                accumulator.append(&mut buffer);
+                if accumulator.len() >= target_samples {
+                    let mut next_accumulator = match rx_recycle.try_recv() {
+                        Ok(mut recycled) => {
+                            recycled.clear();
+                            recycled
+                        }
+                        Err(_) => Vec::with_capacity(target_samples),
+                    };
+    
+                    std::mem::swap(&mut accumulator, &mut next_accumulator);
+                    let samples = next_accumulator;
+
+                    match tx_audio.try_send(samples) {
+                        Ok(_) => {}
+                        Err(TrySendError::Full(_)) => {
+                            tracing::debug!("Audio buffer is full");
+                        }
+                        Err(TrySendError::Closed(_)) => {
+                            tracing::debug!("Capture channel closed");
+                        }
                     }
                 }
             },
