@@ -25,11 +25,14 @@ impl AudioSession {
         let config = device.default_output_config()?.config();
         let target_samples = (config.sample_rate as f32 * config.channels as f32 * 0.2) as usize;
         let mut accumulator = Vec::with_capacity(target_samples);
+
+        let channel = config.channels;
+        let sample_rate = config.sample_rate;
         let stream = device.build_input_stream(
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 let mut temp_buffer = Vec::with_capacity(data.len());
-                convert_audio_chunk(data, &mut temp_buffer);
+                convert_audio_chunk(data, &mut temp_buffer, channel, sample_rate);
                 accumulator.append(&mut temp_buffer);
                 if accumulator.len() >= target_samples {
                     let mut next_accumulator = match rx_recycle.try_recv() {

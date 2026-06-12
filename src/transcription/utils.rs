@@ -1,10 +1,25 @@
 const SCALE: f32 = i16::MAX as f32;
 
-pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>) {
-    if !output.is_empty() {
-        output.clear();
+pub fn convert_audio_chunk(
+    input: &[f32],
+    output: &mut Vec<i16>,
+    channels: u16,
+    sample_rate: u32
+) {
+    output.clear();
+
+    let step = (sample_rate / 16000).max(1) as usize;
+
+    if channels == 2 {
+        for chunk in input.chunks_exact(2).step_by(step) {
+            let mono_sample = (chunk[0] + chunk[1]) * 0.5;
+            output.push((mono_sample.clamp(-1.0, 1.0) * SCALE) as i16);
+        }
+    } else {
+        for chunk in input.chunks_exact(1).step_by(step) {
+            output.push((chunk[0].clamp(-1.0, 1.0) * SCALE) as i16);
+        }
     }
-    output.extend(input.iter().map(|&s| (s.clamp(-1.0, 1.0) * SCALE) as i16));
 }
 
 pub fn is_punctuation_or_symbol(s: &str) -> bool {
