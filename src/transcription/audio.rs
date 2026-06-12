@@ -28,12 +28,9 @@ impl AudioSession {
         let stream = device.build_input_stream(
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                let mut buffer = match rx_recycle.try_recv() {
-                    Ok(sample) => sample,
-                    Err(_) => Vec::with_capacity(data.len()),
-                };
-                convert_audio_chunk(data, &mut buffer);
-                accumulator.append(&mut buffer);
+                let mut temp_buffer = Vec::with_capacity(data.len());
+                convert_audio_chunk(data, &mut temp_buffer);
+                accumulator.append(&mut temp_buffer);
                 if accumulator.len() >= target_samples {
                     let mut next_accumulator = match rx_recycle.try_recv() {
                         Ok(mut recycled) => {
@@ -42,7 +39,7 @@ impl AudioSession {
                         }
                         Err(_) => Vec::with_capacity(target_samples),
                     };
-    
+
                     std::mem::swap(&mut accumulator, &mut next_accumulator);
                     let samples = next_accumulator;
 
