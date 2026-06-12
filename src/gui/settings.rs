@@ -95,7 +95,7 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
                 ui.label("Hangover Chunks:");
-                ui.add(Slider::new(&mut settings.hangover_chunks, 0..=150));
+                ui.add(Slider::new(&mut settings.hangover_chunks, 0..=50));
                 ui.end_row();
 
                 ui.label("Threshold:");

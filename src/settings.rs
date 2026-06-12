@@ -52,8 +52,8 @@ impl Default for SettingsApp {
             max_blocks: 3,
             device_id: None,
             log_to_file: false,
-            hangover_chunks: 5,
-            vad_threshold: 100,
+            hangover_chunks: 15,
+            vad_threshold: 500,
             path: None,
         }
     }
