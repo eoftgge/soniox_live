@@ -35,7 +35,7 @@ impl TranscriptionService {
         audio.play()?;
 
         let handle = tokio::spawn(async move {
-            if let Err(e) = worker.run(&request).await {
+            if let Err(e) = worker.run(&request).await {    
                 tracing::error!("WebSocket error: {:?}", e);
                 let _ = tx_worker.send(SonioxEvent::Error(e)).await;
             }
