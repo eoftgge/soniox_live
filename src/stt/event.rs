@@ -1,6 +1,8 @@
+use crate::stt::data::TranscriptData;
+
 pub enum SttEvent {
     Connected(bool),
-    Transcript(),
+    Transcript(TranscriptData),
     Error(SttError),
     Disconnected,
 }
@@ -8,5 +10,5 @@ pub enum SttEvent {
 pub enum SttError {
     ConnectionLost,
     FatalAPIError(String),
-    RecoverableAPIError,
+    RecoverableAPIError(String),
 }
