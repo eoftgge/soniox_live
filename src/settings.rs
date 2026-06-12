@@ -1,4 +1,4 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::transcription::device::SettingDeviceId;
 use crate::stt::languages::LanguageHint;
 use crate::logger::TracingLevel;
@@ -143,7 +143,7 @@ impl SettingsApp {
         (align, vec2(self.offset.0, self.offset.1))
     }
 
-    pub fn save(&self, path: &str) -> Result<(), SonioxLiveErrors> {
+    pub fn save(&self, path: &str) -> Result<(), OmniSttErrors> {
         let toml_string = toml::to_string_pretty(self)?;
         std::fs::write(path, toml_string)?;
 

@@ -1,5 +1,5 @@
 use super::session::{SonioxSessionReader, SonioxSessionWriter, WsStream};
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use super::types::SonioxTranscriptionRequest;
 use futures_util::StreamExt;
 use tokio_tungstenite::connect_async;
@@ -11,7 +11,7 @@ pub struct SonioxConnection {
 }
 
 impl SonioxConnection {
-    pub async fn connect(url: impl IntoClientRequest) -> Result<Self, SonioxLiveErrors> {
+    pub async fn connect(url: impl IntoClientRequest) -> Result<Self, OmniSttErrors> {
         let request = url.into_client_request()?;
         let (ws_stream, _) = connect_async(request).await?;
 
@@ -21,7 +21,7 @@ impl SonioxConnection {
     pub async fn into_session(
         self,
         request: &SonioxTranscriptionRequest,
-    ) -> Result<(SonioxSessionWriter, SonioxSessionReader), SonioxLiveErrors> {
+    ) -> Result<(SonioxSessionWriter, SonioxSessionReader), OmniSttErrors> {
         let (w, r) = self.ws_stream.split();
         let mut writer = SonioxSessionWriter(w);
         let reader = SonioxSessionReader(r);

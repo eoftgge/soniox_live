@@ -1,4 +1,4 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_provider;
@@ -21,13 +21,13 @@ impl TranscriptionService {
         settings: &SettingsApp,
         devices: &MappableAvailableDevices,
         on_new_event: F,
-    ) -> Result<Self, SonioxLiveErrors>
+    ) -> Result<Self, OmniSttErrors>
     where
         F: Fn() + Send + Sync + 'static,
     {
         let device = devices
             .to_output_device(settings.device_id.as_ref())
-            .ok_or(SonioxLiveErrors::NotFoundOutputDevice)?;
+            .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
 
         let cancel_token = CancellationToken::new();
 

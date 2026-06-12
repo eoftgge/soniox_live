@@ -1,4 +1,4 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::service::TranscriptionService;
@@ -45,7 +45,7 @@ impl StateManager {
         store: &mut TranscriptionStore,
         settings: &SettingsApp,
         devices: &MappableAvailableDevices,
-    ) -> Result<(), SonioxLiveErrors> {
+    ) -> Result<(), OmniSttErrors> {
         let Some(resolved) = self.pending_state.take() else {
             return Ok(());
         };

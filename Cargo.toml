@@ -1,5 +1,5 @@
 [package]
-name = "soniox_live"
+name = "omni-stt"
 version = "2.2.0"
 edition = "2024"
 repository = "https://github.com/eoftgge/soniox_live"

@@ -1,4 +1,4 @@
-use crate::errors::SonioxLiveErrors;
+use crate::errors::OmniSttErrors;
 use crate::transcription::utils::convert_audio_chunk;
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{Device, Stream, StreamConfig};
@@ -21,7 +21,7 @@ impl AudioSession {
         device: Device,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
-    ) -> Result<Self, SonioxLiveErrors> {
+    ) -> Result<Self, OmniSttErrors> {
         let config = device.default_output_config()?.config();
         let stream = device.build_input_stream(
             &config,
