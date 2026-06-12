@@ -22,6 +22,7 @@ egui-notify = "0.22.0"
 cpal = "0.17.3"
 bytemuck = "1.25.0"
 embed_plist = "1.2.2"
+async-trait = "0.1.89"
 
 [build-dependencies]
 winres = "0.1.12"
