@@ -33,8 +33,8 @@ impl TranscriptionService {
 
         let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
         let (tx_event, rx_event) = channel::<SttEvent>(128);
-        let (tx_audio, rx_audio) = channel::<AudioSample>(256);
-        let (tx_recycle, rx_recycle) = channel::<AudioSample>(256);
+        let (tx_audio, rx_audio) = channel::<AudioSample>(2048);
+        let (tx_recycle, rx_recycle) = channel::<AudioSample>(2048);
 
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
 

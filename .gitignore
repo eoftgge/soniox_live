@@ -4,5 +4,5 @@
 Cargo.lock
 soniox.toml
 soniox.log
-omni-stt.toml
-omni-stt.log
+omni.log
+omni.toml

@@ -11,7 +11,7 @@ use omni_stt::setup_tracing;
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 fn run() -> Result<(), OmniSttErrors> {
-    let settings = SettingsApp::new("omni_stt.toml");
+    let settings = SettingsApp::new("omni.toml");
     let level = settings.level();
     let guard = setup_tracing(level, settings.log_to_file());
     let app = SubtitlesApp::new(settings, guard);

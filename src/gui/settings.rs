@@ -53,7 +53,7 @@ fn ui_bottom_panel(
                         .add(Button::new("💾 Save").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        match settings.save("soniox.toml") {
+                        match settings.save() {
                             Ok(_) => {
                                 toasts
                                     .success("Settings saved successfully!")
