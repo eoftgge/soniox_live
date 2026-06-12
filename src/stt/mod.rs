@@ -2,6 +2,15 @@ pub mod event;
 pub mod provider;
 pub mod worker;
 pub mod action;
-mod data;
-mod utils;
-mod factory;
+pub mod data;
+pub mod utils;
+pub mod adapters;
+pub mod store;
+
+pub mod prelude {
+    pub use super::{
+        provider::SttProvider,
+        event::{SttEvent, SttError},
+        data::TranscriptData
+    };
+}
