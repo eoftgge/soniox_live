@@ -23,7 +23,7 @@ impl AudioSession {
         mut rx_recycle: Receiver<AudioSample>,
     ) -> Result<Self, OmniSttErrors> {
         let config = device.default_output_config()?.config();
-        let target_samples = (config.sample_rate as f32 * config.channels as f32 * 0.2) as usize;
+        let target_samples = 3200;
         let mut accumulator = Vec::with_capacity(target_samples);
 
         let channel = config.channels;

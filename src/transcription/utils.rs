@@ -8,17 +8,28 @@ pub fn convert_audio_chunk(
 ) {
     output.clear();
 
-    let step = (sample_rate / 16000).max(1) as usize;
+    let ch = channels as usize;
+    let gain = 5.0;
 
-    if channels == 2 {
-        for chunk in input.chunks_exact(2).step_by(step) {
-            let mono_sample = (chunk[0] + chunk[1]) * 0.5;
-            output.push((mono_sample.clamp(-1.0, 1.0) * SCALE) as i16);
+    let ratio = sample_rate as f32 / 16000.0;
+
+    let total_frames = input.len() / ch;
+    let target_frames = (total_frames as f32 / ratio) as usize;
+
+    for i in 0..target_frames {
+        let src_frame_idx = (i as f32 * ratio) as usize;
+
+        if src_frame_idx >= total_frames {
+            break;
         }
-    } else {
-        for chunk in input.chunks_exact(1).step_by(step) {
-            output.push((chunk[0].clamp(-1.0, 1.0) * SCALE) as i16);
-        }
+
+        let frame_start = src_frame_idx * ch;
+        let frame = &input[frame_start .. frame_start + ch];
+
+        let sum: f32 = frame.iter().sum();
+        let mono_sample = (sum / ch as f32) * gain;
+
+        output.push((mono_sample.clamp(-1.0, 1.0) * SCALE) as i16);
     }
 }
 
