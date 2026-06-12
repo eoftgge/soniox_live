@@ -1,9 +1,9 @@
-use std::time::Duration;
 use crate::stt::action::StreamAction;
 use crate::stt::event::{SttError, SttEvent};
 use crate::stt::provider::SttProvider;
 use crate::stt::utils::is_silent;
 use crate::types::audio::AudioSample;
+use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;
 
@@ -20,7 +20,14 @@ pub struct GenericSttWorker {
 }
 
 impl GenericSttWorker {
-    pub fn new(rx_audio: Receiver<AudioSample>, tx_recycle: Sender<AudioSample>, tx_event: Sender<SttEvent>, hangover_chunks_limit: usize, vad_threshold: u32, provider: Box<dyn SttProvider>) -> Self {
+    pub fn new(
+        rx_audio: Receiver<AudioSample>,
+        tx_recycle: Sender<AudioSample>,
+        tx_event: Sender<SttEvent>,
+        hangover_chunks_limit: usize,
+        vad_threshold: u32,
+        provider: Box<dyn SttProvider>,
+    ) -> Self {
         Self {
             rx_audio,
             tx_recycle,
@@ -37,7 +44,9 @@ impl GenericSttWorker {
 
         loop {
             let first_packet = if retry_count == 0 {
-                let Some(packet) = self.wait_first_packet().await else { return Ok(()) };
+                let Some(packet) = self.wait_first_packet().await else {
+                    return Ok(());
+                };
                 packet
             } else {
                 Vec::new()
@@ -58,7 +67,10 @@ impl GenericSttWorker {
                 let _ = self.tx_recycle.send(first_packet).await;
             }
 
-            let _ = self.tx_event.send(SttEvent::Connected(flag_first_connection)).await;
+            let _ = self
+                .tx_event
+                .send(SttEvent::Connected(flag_first_connection))
+                .await;
             flag_first_connection = false;
 
             if self.run_session_loop().await == StreamAction::Stop {

@@ -1,5 +1,5 @@
-use thiserror::Error;
 use crate::stt::data::TranscriptData;
+use thiserror::Error;
 
 pub enum SttEvent {
     Connected(bool),

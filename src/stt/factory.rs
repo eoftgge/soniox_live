@@ -1,10 +1,10 @@
 use crate::settings::SettingsApp;
-use crate::stt::provider::{SttProvider};
-use crate::stt::event::SttError;
 use crate::stt::adapters::soniox::SonioxAdapter;
+use crate::stt::event::SttError;
+use crate::stt::provider::SttProvider;
 
-use cpal::StreamConfig;
 use crate::stt::adapters::soniox::request::create_request;
+use cpal::StreamConfig;
 
 pub fn create_stt_provider(
     settings: &SettingsApp,

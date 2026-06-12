@@ -1,13 +1,13 @@
 use crate::errors::SonioxLiveErrors;
 use crate::settings::SettingsApp;
+use crate::stt::event::SttEvent;
+use crate::stt::factory::create_stt_provider;
+use crate::stt::worker::GenericSttWorker;
 use crate::transcription::audio::AudioSession;
 use crate::types::audio::AudioSample;
 use crate::types::device::MappableAvailableDevices;
-use tokio::sync::mpsc::{channel, Receiver};
+use tokio::sync::mpsc::{Receiver, channel};
 use tokio_util::sync::CancellationToken;
-use crate::stt::factory::create_stt_provider;
-use crate::stt::event::SttEvent;
-use crate::stt::worker::GenericSttWorker;
 
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,

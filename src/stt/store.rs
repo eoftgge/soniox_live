@@ -1,9 +1,9 @@
+use crate::stt::data::TranscriptData;
 use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
 use crate::types::subtitles::SubtitleBlock;
 use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
-use crate::stt::data::TranscriptData;
 
 pub struct TranscriptionStore {
     pub blocks: VecDeque<SubtitleBlock>,
@@ -39,7 +39,8 @@ impl TranscriptionStore {
                         let last_char = last.text.chars().last().unwrap_or(' ');
                         let first_char = data.text.chars().next().unwrap_or(' ');
 
-                        let is_space_boundary = last_char.is_whitespace() || first_char.is_whitespace();
+                        let is_space_boundary =
+                            last_char.is_whitespace() || first_char.is_whitespace();
                         let is_cjk_boundary = is_cjk(last_char) || is_cjk(first_char);
 
                         is_space_boundary || is_cjk_boundary

@@ -2,15 +2,15 @@ use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, StateManager};
 use crate::settings::SettingsApp;
-use crate::transcription::service::TranscriptionService;
+use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
+use crate::transcription::service::TranscriptionService;
 use crate::types::device::MappableAvailableDevices;
 use eframe::egui::{Align, Area, Id, Layout, Order, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
-use crate::stt::event::SttEvent;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -79,9 +79,9 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        if let Err(err) = self
-            .manager
-            .resolve(ui.ctx(), &mut self.store, &self.settings, &self.devices)
+        if let Err(err) =
+            self.manager
+                .resolve(ui.ctx(), &mut self.store, &self.settings, &self.devices)
         {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }

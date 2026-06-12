@@ -1,5 +1,7 @@
 pub fn is_silent(buffer: &[i16], threshold: u32) -> bool {
-    if buffer.is_empty() { return true; }
+    if buffer.is_empty() {
+        return true;
+    }
 
     let mut sum_squares = 0u64;
     for &sample in buffer {

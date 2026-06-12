@@ -1,15 +1,15 @@
 pub mod connection;
-pub mod session;
 pub mod request;
+pub mod session;
 
 use async_trait::async_trait;
 use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
+use crate::stt::prelude::{SttError, SttEvent, SttProvider, TranscriptData};
+use crate::types::soniox::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
-use crate::types::soniox::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
-use crate::stt::prelude::{SttProvider, SttEvent, SttError, TranscriptData};
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
@@ -41,9 +41,11 @@ impl SonioxAdapter {
 #[async_trait]
 impl SttProvider for SonioxAdapter {
     async fn connect(&mut self) -> Result<(), SttError> {
-        let conn = SonioxConnection::connect(URL).await
+        let conn = SonioxConnection::connect(URL)
+            .await
             .map_err(|_| SttError::ConnectionLost)?;
-        let (w, r) = conn.into_session(&self.request)
+        let (w, r) = conn
+            .into_session(&self.request)
             .await
             .map_err(|_| SttError::ConnectionLost)?;
         self.writer = Some(w);
@@ -56,7 +58,8 @@ impl SttProvider for SonioxAdapter {
     async fn send(&mut self, audio: &[u8]) -> Result<(), SttError> {
         let writer = self.writer.as_mut().ok_or(SttError::ConnectionLost)?;
         writer
-            .send_bytes(Bytes::copy_from_slice(audio)).await
+            .send_bytes(Bytes::copy_from_slice(audio))
+            .await
             .map_err(|_| SttError::ConnectionLost)
     }
 
@@ -91,11 +94,13 @@ impl SttProvider for SonioxAdapter {
                                 self.current_sentence.push_str(&token.text);
 
                                 if token.is_final {
-                                    self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
-                                        text: self.current_sentence.clone(),
-                                        is_final: true,
-                                        speaker: self.current_speaker.clone(),
-                                    }));
+                                    self.event_queue.push_back(SttEvent::Transcript(
+                                        TranscriptData {
+                                            text: self.current_sentence.clone(),
+                                            is_final: true,
+                                            speaker: self.current_speaker.clone(),
+                                        },
+                                    ));
                                     self.current_sentence.clear();
                                 } else {
                                     has_interim = true;
@@ -103,11 +108,12 @@ impl SttProvider for SonioxAdapter {
                             }
 
                             if has_interim && !self.current_sentence.is_empty() {
-                                self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
-                                    text: self.current_sentence.clone(),
-                                    is_final: false,
-                                    speaker: self.current_speaker.clone(),
-                                }));
+                                self.event_queue
+                                    .push_back(SttEvent::Transcript(TranscriptData {
+                                        text: self.current_sentence.clone(),
+                                        is_final: false,
+                                        speaker: self.current_speaker.clone(),
+                                    }));
                             }
 
                             if let Some(event) = self.event_queue.pop_front() {
@@ -119,7 +125,7 @@ impl SttProvider for SonioxAdapter {
                                 Err(SttError::RecoverableAPIError(e.error_message))
                             } else {
                                 Err(SttError::FatalAPIError(e.error_message))
-                            }
+                            };
                         }
                     }
                 }
