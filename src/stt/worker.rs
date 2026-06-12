@@ -61,7 +61,7 @@ impl GenericSttWorker {
 
             if !first_packet.is_empty() {
                 let slice = bytemuck::cast_slice(&first_packet);
-                if let Err(_) = self.provider.send(slice).await {
+                if self.provider.send(slice).await.is_err() {
                     continue;
                 }
                 let _ = self.tx_recycle.send(first_packet).await;

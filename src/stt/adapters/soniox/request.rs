@@ -2,11 +2,9 @@ use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::adapters::soniox::MODEL;
 use super::types::{SonioxTranscriptionRequest, SonioxTranslationObject};
-use cpal::StreamConfig;
 
 pub(crate) fn create_request(
     settings: &SettingsApp,
-    stream_config: &StreamConfig,
 ) -> Result<SonioxTranscriptionRequest, OmniSttErrors> {
     let mut request = SonioxTranscriptionRequest {
         api_key: settings.api_key(),

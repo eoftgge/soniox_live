@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 pub enum LanguageHint {
     #[serde(rename = "af")]
     Afrikaans,
@@ -33,6 +33,7 @@ pub enum LanguageHint {
     #[serde(rename = "nl")]
     Dutch,
     #[serde(rename = "en")]
+    #[default]
     English,
     #[serde(rename = "et")]
     Estonian,
@@ -188,12 +189,6 @@ impl LanguageHint {
             Self::Vietnamese,
             Self::Welsh,
         ]
-    }
-}
-
-impl Default for LanguageHint {
-    fn default() -> Self {
-        Self::English
     }
 }
 

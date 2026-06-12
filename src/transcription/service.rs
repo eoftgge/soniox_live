@@ -38,7 +38,7 @@ impl TranscriptionService {
 
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
 
-        let provider = create_stt_provider(settings, audio.config()).unwrap();
+        let provider = create_stt_provider(settings).unwrap();
         let tx_worker_2 = tx_worker.clone();
         let worker = GenericSttWorker::new(
             rx_audio,
