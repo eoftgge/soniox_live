@@ -84,13 +84,11 @@ fn ui_bottom_panel(
                                 toasts
                                     .warning("No API key provided for Soniox!")
                                     .closable(false);
-                                return;
                             }
                             ProviderType::Whisper if settings_provider.whisper.path.as_os_str().is_empty() => {
                                 toasts
                                     .warning("No model path provided for Whisper!")
                                     .closable(false);
-                                return;
                             }
                             _ => {
                                 manager.switch(PendingState::Overlay);
@@ -195,13 +193,12 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
                     whisper.path = PathBuf::from(path_str);
                 }
 
-                if ui.button("📂 Browse").clicked() {
-                    if let Some(path) = rfd::FileDialog::new()
-                        .add_filter("Whisper Models", &["bin"])
-                        .pick_file()
-                    {
-                        whisper.path = path;
-                    }
+                if ui.button("📂 Browse").clicked() &&
+                    let Some(path) = rfd::FileDialog::new()
+                    .add_filter("Whisper Models", &["bin"])
+                    .pick_file()
+                {
+                    whisper.path = path;
                 }
             });
             ui.end_row();
