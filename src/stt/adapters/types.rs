@@ -1,11 +1,11 @@
-use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
 use crate::stt::languages::LanguageHint;
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ProviderType {
     Soniox,
-    Whisper
+    Whisper,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

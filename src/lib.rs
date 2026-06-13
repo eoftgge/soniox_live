@@ -4,10 +4,10 @@ use tracing_subscriber::fmt::writer::BoxMakeWriter;
 
 pub mod errors;
 pub mod gui;
+pub mod logger;
 pub mod settings;
 pub mod stt;
 pub mod transcription;
-pub mod logger;
 
 pub fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
     let (writer, guard) = if log_to_file {

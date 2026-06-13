@@ -1,3 +1,3 @@
 pub mod soniox;
-pub mod whisper;
 pub mod types;
+pub mod whisper;

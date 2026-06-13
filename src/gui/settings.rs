@@ -1,13 +1,16 @@
 use crate::gui::state::{PendingState, StateManager};
-use crate::settings::SettingsApp;
-use crate::transcription::device::MappableAvailableDevices;
-use crate::stt::languages::LanguageHint;
 use crate::logger::LEVELS;
-use eframe::egui::{self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2, Color32};
-use egui_notify::Toasts;
-use std::time::Duration;
-use std::path::PathBuf;
+use crate::settings::SettingsApp;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
+use crate::stt::languages::LanguageHint;
+use crate::transcription::device::MappableAvailableDevices;
+use eframe::egui::{
+    self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
+    TextEdit, Ui, vec2,
+};
+use egui_notify::Toasts;
+use std::path::PathBuf;
+use std::time::Duration;
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -77,13 +80,17 @@ fn ui_bottom_panel(
                         match settings.provider_type {
                             ProviderType::Soniox => {
                                 if settings.soniox.api_key.trim().is_empty() {
-                                    toasts.warning("No API key provided for Soniox!").closable(false);
+                                    toasts
+                                        .warning("No API key provided for Soniox!")
+                                        .closable(false);
                                     return;
                                 }
                             }
                             ProviderType::Whisper => {
                                 if settings.whisper.path.as_os_str().is_empty() {
-                                    toasts.warning("No model path provided for Whisper!").closable(false);
+                                    toasts
+                                        .warning("No model path provided for Whisper!")
+                                        .closable(false);
                                     return;
                                 }
                             }
@@ -100,8 +107,16 @@ fn ui_bottom_panel(
 fn ui_section_provider(ui: &mut Ui, settings: &mut SettingsApp) {
     ui.collapsing("Speech Engine (STT)", |ui| {
         ui.horizontal(|ui| {
-            ui.selectable_value(&mut settings.provider_type, ProviderType::Soniox, "☁ Soniox (Cloud)");
-            ui.selectable_value(&mut settings.provider_type, ProviderType::Whisper, "💻 Whisper (Offline)");
+            ui.selectable_value(
+                &mut settings.provider_type,
+                ProviderType::Soniox,
+                "☁ Soniox (Cloud)",
+            );
+            ui.selectable_value(
+                &mut settings.provider_type,
+                ProviderType::Whisper,
+                "💻 Whisper (Offline)",
+            );
         });
 
         ui.separator();
@@ -173,7 +188,10 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
             ui.add(egui::Label::new("Model File:").extend());
             ui.horizontal(|ui| {
                 let mut path_str = whisper.path.display().to_string();
-                if ui.add(TextEdit::singleline(&mut path_str).desired_width(200.0)).changed() {
+                if ui
+                    .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
+                    .changed()
+                {
                     whisper.path = PathBuf::from(path_str);
                 }
 
@@ -189,7 +207,11 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
             ui.end_row();
 
             ui.label("");
-            ui.label(RichText::new("Download ggml-*.bin models from HuggingFace").color(Color32::GRAY).small());
+            ui.label(
+                RichText::new("Download ggml-*.bin models from HuggingFace")
+                    .color(Color32::GRAY)
+                    .small(),
+            );
             ui.end_row();
         });
 }
@@ -375,7 +397,9 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
                 ui.end_row();
 
                 ui.label("Always On Top:");
-                ui.add(Checkbox::without_text(&mut settings.gui.enable_high_priority));
+                ui.add(Checkbox::without_text(
+                    &mut settings.gui.enable_high_priority,
+                ));
                 ui.end_row();
             });
 

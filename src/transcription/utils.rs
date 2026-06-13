@@ -1,11 +1,6 @@
 const SCALE: f32 = i16::MAX as f32;
 
-pub fn convert_audio_chunk(
-    input: &[f32],
-    output: &mut Vec<i16>,
-    channels: u16,
-    sample_rate: u32
-) {
+pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>, channels: u16, sample_rate: u32) {
     output.clear();
 
     let ch = channels as usize;
@@ -24,7 +19,7 @@ pub fn convert_audio_chunk(
         }
 
         let frame_start = src_frame_idx * ch;
-        let frame = &input[frame_start .. frame_start + ch];
+        let frame = &input[frame_start..frame_start + ch];
 
         let sum: f32 = frame.iter().sum();
         let mono_sample = (sum / ch as f32) * gain;

@@ -1,8 +1,8 @@
 use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::store::TranscriptionStore;
-use crate::transcription::service::TranscriptionService;
 use crate::transcription::device::MappableAvailableDevices;
+use crate::transcription::service::TranscriptionService;
 use eframe::egui::{Context, ViewportCommand, WindowLevel};
 
 pub struct StateManager {

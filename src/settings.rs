@@ -1,7 +1,7 @@
 use crate::errors::OmniSttErrors;
-use crate::transcription::device::SettingDeviceId;
 use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
+use crate::transcription::device::SettingDeviceId;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use eframe::epaint::Rgba;
 use serde::{Deserialize, Serialize};
@@ -47,7 +47,7 @@ impl Default for SettingsGUI {
             anchor: 7,
             font_size: 21,
             background_color: [0., 0., 0., 150.],
-            text_color: [255., 255., 0.],           // yellow
+            text_color: [255., 255., 0.], // yellow
         }
     }
 }
@@ -73,7 +73,7 @@ impl Default for SettingsApp {
             whisper: Default::default(),
             audio: Default::default(),
             gui: Default::default(),
-            provider_type: ProviderType::Soniox
+            provider_type: ProviderType::Soniox,
         }
     }
 }

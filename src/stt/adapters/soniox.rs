@@ -7,11 +7,11 @@ use async_trait::async_trait;
 use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
+use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
 use crate::stt::prelude::{SttError, SttEvent, SttProvider, TranscriptData};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
-use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
@@ -104,18 +104,20 @@ impl SonioxAdapter {
         speaker: &Option<String>,
     ) {
         if !final_text.is_empty() {
-            self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
-                text: std::mem::take(final_text),
-                is_final: true,
-                speaker: speaker.clone(),
-            }));
+            self.event_queue
+                .push_back(SttEvent::Transcript(TranscriptData {
+                    text: std::mem::take(final_text),
+                    is_final: true,
+                    speaker: speaker.clone(),
+                }));
         }
         if !interim_text.is_empty() {
-            self.event_queue.push_back(SttEvent::Transcript(TranscriptData {
-                text: std::mem::take(interim_text),
-                is_final: false,
-                speaker: speaker.clone(),
-            }));
+            self.event_queue
+                .push_back(SttEvent::Transcript(TranscriptData {
+                    text: std::mem::take(interim_text),
+                    is_final: false,
+                    speaker: speaker.clone(),
+                }));
         }
     }
 }
@@ -158,7 +160,7 @@ impl SttProvider for SonioxAdapter {
                     SttError::ConnectionLost
                 })?
             };
-            
+
             if let Some(event) = self.handle_ws_message(msg).await? {
                 return Ok(event);
             }

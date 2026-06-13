@@ -1,13 +1,13 @@
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
-use async_trait::async_trait;
-use tokio::time::sleep;
-use tokio::sync::mpsc::{channel, Sender, Receiver};
-use whisper_rs::{WhisperContext, WhisperContextParameters, FullParams, SamplingStrategy};
 use crate::stt::data::TranscriptData;
 use crate::stt::event::{SttError, SttEvent};
 use crate::stt::provider::SttProvider;
+use async_trait::async_trait;
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::mpsc::{Receiver, Sender, channel};
+use tokio::time::sleep;
+use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
 
 pub struct WhisperAdapter {
     path: PathBuf,
@@ -17,17 +17,19 @@ pub struct WhisperAdapter {
 
 impl WhisperAdapter {
     pub fn new(path: impl Into<PathBuf>) -> Self {
-        Self { path: path.into(), audio_tx: None, event_rx: None }
+        Self {
+            path: path.into(),
+            audio_tx: None,
+            event_rx: None,
+        }
     }
 }
 
 #[async_trait]
 impl SttProvider for WhisperAdapter {
     async fn connect(&mut self) -> Result<(), SttError> {
-        let ctx = WhisperContext::new_with_params(
-            &self.path,
-            WhisperContextParameters::default(),
-        ).map_err(|e| SttError::FatalAPIError(format!("Failed to load model: {}", e)))?;
+        let ctx = WhisperContext::new_with_params(&self.path, WhisperContextParameters::default())
+            .map_err(|e| SttError::FatalAPIError(format!("Failed to load model: {}", e)))?;
         let ctx = Arc::new(ctx);
 
         let (audio_tx, mut audio_rx) = channel::<Vec<f32>>(100);
@@ -96,24 +98,23 @@ impl SttProvider for WhisperAdapter {
     async fn send(&mut self, audio: &[u8]) -> Result<(), SttError> {
         if let Some(tx) = &self.audio_tx {
             let audio_i16: &[i16] = bytemuck::cast_slice(audio);
-            let audio_f32: Vec<f32> = audio_i16
-                .iter()
-                .map(|&s| s as f32 / 32768.0)
-                .collect();
-            tx.send(audio_f32).await.map_err(|_| {
-                SttError::FatalAPIError("Whisper audio channel closed".into())
-            })?;
+            let audio_f32: Vec<f32> = audio_i16.iter().map(|&s| s as f32 / 32768.0).collect();
+            tx.send(audio_f32)
+                .await
+                .map_err(|_| SttError::FatalAPIError("Whisper audio channel closed".into()))?;
         }
         Ok(())
     }
 
     async fn recv_event(&mut self) -> Result<SttEvent, SttError> {
         if let Some(rx) = &mut self.event_rx {
-            rx.recv().await.ok_or_else(|| {
-                SttError::FatalAPIError("Whisper event channel closed".into())
-            })
+            rx.recv()
+                .await
+                .ok_or_else(|| SttError::FatalAPIError("Whisper event channel closed".into()))
         } else {
-            Err(SttError::FatalAPIError("Whisper provider not connected".into()))
+            Err(SttError::FatalAPIError(
+                "Whisper provider not connected".into(),
+            ))
         }
     }
 }

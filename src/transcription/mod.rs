@@ -1,6 +1,6 @@
 pub mod audio;
+pub mod device;
 pub mod replicas;
 pub mod service;
-pub mod utils;
 pub mod subtitles;
-pub mod device;
+pub mod utils;
