@@ -5,16 +5,17 @@ use eframe::icon_data::from_png_bytes;
 use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
-use omni_stt::settings::SettingsApp;
+use omni_stt::settings::SettingsManager;
 use omni_stt::setup_tracing;
 
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 fn run() -> Result<(), OmniSttErrors> {
-    let settings = SettingsApp::new("omni.toml");
+    let settings_manager = SettingsManager::new("omni.toml");
+    let settings = &settings_manager.settings;
     let level = settings.level();
     let guard = setup_tracing(level, settings.log_to_file());
-    let app = SubtitlesApp::new(settings, guard);
+    let app = SubtitlesApp::new(settings_manager, guard);
 
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()

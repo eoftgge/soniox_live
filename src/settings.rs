@@ -9,7 +9,8 @@ use std::path::PathBuf;
 use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
-pub struct SettingsGUI {
+pub struct SettingsUI {
+    pub(crate) max_blocks: usize,
     pub(crate) offset: (f32, f32),
     pub(crate) anchor: usize,
     pub(crate) font_size: usize,
@@ -20,7 +21,6 @@ pub struct SettingsGUI {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SettingsAudio {
-    pub(crate) max_blocks: usize,
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) hangover_chunks: usize,
     pub(crate) vad_threshold: u32,
@@ -28,18 +28,21 @@ pub struct SettingsAudio {
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SettingsApp {
-    pub(crate) level: TracingLevel,
-    pub(crate) log_to_file: bool,
+    pub level: TracingLevel,
+    pub log_to_file: bool,
     pub(crate) audio: SettingsAudio,
-    pub(crate) gui: SettingsGUI,
+    pub(crate) ui: SettingsUI,
     pub(crate) provider_type: ProviderType,
     pub(crate) soniox: SonioxSettings,
     pub(crate) whisper: WhisperSettings,
-    #[serde(skip)]
-    pub(crate) path: Option<PathBuf>,
 }
 
-impl Default for SettingsGUI {
+pub struct SettingsManager {
+    pub settings: SettingsApp,
+    pub(self) path: PathBuf,
+}
+
+impl Default for SettingsUI {
     fn default() -> Self {
         Self {
             enable_high_priority: true,
@@ -48,6 +51,7 @@ impl Default for SettingsGUI {
             font_size: 21,
             background_color: [0., 0., 0., 150.],
             text_color: [255., 255., 0.], // yellow
+            max_blocks: 3,
         }
     }
 }
@@ -55,7 +59,6 @@ impl Default for SettingsGUI {
 impl Default for SettingsAudio {
     fn default() -> Self {
         Self {
-            max_blocks: 3,
             device_id: None,
             hangover_chunks: 15,
             vad_threshold: 500,
@@ -66,19 +69,18 @@ impl Default for SettingsAudio {
 impl Default for SettingsApp {
     fn default() -> Self {
         Self {
-            level: TracingLevel::Info,
+            level: TracingLevel::Info,  // todo: take it out to the global
             log_to_file: false,
-            path: None,
             soniox: Default::default(),
             whisper: Default::default(),
             audio: Default::default(),
-            gui: Default::default(),
+            ui: Default::default(),
             provider_type: ProviderType::Soniox,
         }
     }
 }
 
-impl SettingsGUI {
+impl SettingsUI {
     pub fn text_color(&self) -> Color32 {
         let color = self.text_color;
         Rgba::from_rgb(color[0], color[1], color[2]).into()
@@ -106,20 +108,13 @@ impl SettingsGUI {
     }
 }
 
-impl SettingsApp {
-    pub fn new(path: &str) -> SettingsApp {
-        let path = PathBuf::from(path);
-        let mut settings = match std::fs::read_to_string(&path) {
-            Ok(content) => toml::from_str(&content).unwrap_or_else(|_| Self::default()),
-            Err(_) => Self::default(),
-        };
-        if let Ok(new_content) = toml::to_string_pretty(&settings) {
-            let _ = std::fs::write(&path, new_content);
-        }
-        settings.path = Some(path);
-        settings
+impl SettingsAudio {
+    pub fn device_id(&self) -> Option<SettingDeviceId> {
+        self.device_id.clone()
     }
+}
 
+impl SettingsApp {
     pub fn log_to_file(&self) -> bool {
         self.log_to_file
     }
@@ -127,10 +122,26 @@ impl SettingsApp {
     pub fn level(&self) -> Level {
         Level::from(self.level)
     }
+}
+
+impl SettingsManager {
+    pub fn new(path: &str) -> Self {
+        let path = PathBuf::from(path);
+        let settings = match std::fs::read_to_string(&path) {
+            Ok(content) => toml::from_str(&content).unwrap_or_else(|_| SettingsApp::default()),
+            Err(_) => SettingsApp::default(),
+        };
+        if let Ok(new_content) = toml::to_string_pretty(&settings) {
+            let _ = std::fs::write(&path, new_content);
+        }
+        Self {
+            path, settings,
+        }
+    }
 
     pub fn save(&self) -> Result<(), OmniSttErrors> {
-        let path = self.path.clone().expect("path");
-        let toml_string = toml::to_string_pretty(self)?;
+        let path = self.path.clone();
+        let toml_string = toml::to_string_pretty(&self.settings)?;
         std::fs::write(path, toml_string)?;
 
         Ok(())

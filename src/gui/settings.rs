@@ -1,6 +1,5 @@
 use crate::gui::state::{PendingState, StateManager};
-use crate::logger::LEVELS;
-use crate::settings::SettingsApp;
+use crate::settings::{SettingsApp, SettingsAudio, SettingsUI, SettingsManager};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
@@ -14,12 +13,12 @@ use std::time::Duration;
 
 pub fn show_settings_window(
     ui: &mut Ui,
-    settings: &mut SettingsApp,
+    settings_manager: &mut SettingsManager,
     manager: &mut StateManager,
     toasts: &mut Toasts,
     devices: &mut MappableAvailableDevices,
 ) {
-    ui_bottom_panel(ui, settings, manager, toasts);
+    ui_bottom_panel(ui, settings_manager, manager, toasts);
 
     egui::CentralPanel::default()
         .frame(egui::Frame::central_panel(&ui.ctx().global_style()).inner_margin(15.0))
@@ -28,11 +27,12 @@ pub fn show_settings_window(
             ui.heading("Settings");
             ui.separator();
 
+            let settings = &mut settings_manager.settings;
             ScrollArea::vertical().show(ui, |ui| {
-                ui_section_app(ui, settings, devices);
+                ui_section_app(ui, &mut settings.audio, devices);
                 ui_section_provider(ui, settings);
-                ui_section_position(ui, settings);
-                ui_section_appearance(ui, settings);
+                ui_section_position(ui, &mut settings.ui);
+                ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));
             });
         });
@@ -40,7 +40,7 @@ pub fn show_settings_window(
 
 fn ui_bottom_panel(
     ui: &mut Ui,
-    settings: &mut SettingsApp,
+    settings_manager: &mut SettingsManager,
     manager: &mut StateManager,
     toasts: &mut Toasts,
 ) {
@@ -55,7 +55,7 @@ fn ui_bottom_panel(
                         .add(Button::new("💾 Save").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        match settings.save() {
+                        match settings_manager.save() {
                             Ok(_) => {
                                 toasts
                                     .success("Settings saved successfully!")
@@ -77,26 +77,26 @@ fn ui_bottom_panel(
                         .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
+                        let ref settings = settings_manager.settings;
+
                         match settings.provider_type {
-                            ProviderType::Soniox => {
-                                if settings.soniox.api_key.trim().is_empty() {
-                                    toasts
-                                        .warning("No API key provided for Soniox!")
-                                        .closable(false);
-                                    return;
-                                }
+                            ProviderType::Soniox if settings.soniox.api_key.trim().is_empty() => {
+                                toasts
+                                    .warning("No API key provided for Soniox!")
+                                    .closable(false);
+                                return;
                             }
-                            ProviderType::Whisper => {
-                                if settings.whisper.path.as_os_str().is_empty() {
-                                    toasts
-                                        .warning("No model path provided for Whisper!")
-                                        .closable(false);
-                                    return;
-                                }
+                            ProviderType::Whisper if settings.whisper.path.as_os_str().is_empty() => {
+                                toasts
+                                    .warning("No model path provided for Whisper!")
+                                    .closable(false);
+                                return;
+                            }
+                            _ => {
+                                manager.switch(PendingState::Overlay);
+                                toasts.info("Starting subtitles overlay...").closable(false);
                             }
                         }
-                        manager.switch(PendingState::Overlay);
-                        toasts.info("Starting subtitles overlay...").closable(false);
                     }
                 });
             });
@@ -216,43 +216,41 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
         });
 }
 
-fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut MappableAvailableDevices) {
+fn ui_section_app(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut MappableAvailableDevices) {
     ui.collapsing("Configuration App", |ui| {
         Grid::new("app_grid")
             .num_columns(2)
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
                 ui.label("Hangover Chunks:");
-                ui.add(Slider::new(&mut settings.audio.hangover_chunks, 0..=50));
+                ui.add(Slider::new(&mut settings_audio.hangover_chunks, 0..=50));
                 ui.end_row();
 
                 ui.label("Threshold:");
-                ui.add(Slider::new(&mut settings.audio.vad_threshold, 0..=2000).logarithmic(true));
+                ui.add(Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true));
                 ui.end_row();
 
-                ui.label("Log Level:");
-                ComboBox::from_id_salt("log_level")
-                    .selected_text(settings.level.to_string())
-                    .width(40.0)
-                    .show_ui(ui, |ui| {
-                        for level in LEVELS {
-                            ui.selectable_value(&mut settings.level, *level, level.to_string());
-                        }
-                    });
-                ui.end_row();
-
-                ui.label("Log to file");
-                ui.add(Checkbox::without_text(&mut settings.log_to_file))
-                    .on_hover_text("Allow logs to be added to the file");
-                ui.end_row();
+                // ui.label("Log Level:");
+                // ComboBox::from_id_salt("log_level")
+                //     .selected_text(settings_audio.level.to_string())
+                //     .width(40.0)
+                //     .show_ui(ui, |ui| {
+                //         for level in LEVELS {
+                //             ui.selectable_value(&mut settings_audio.level, *level, level.to_string());
+                //         }
+                //     });
+                // ui.end_row();
+                //
+                // ui.label("Log to file");
+                // ui.add(Checkbox::without_text(&mut settings_audio.log_to_file))
+                //     .on_hover_text("Allow logs to be added to the file");
+                // ui.end_row();
 
                 ui.label("Output Device:");
 
                 let default_label = "System Default";
-                let current = settings
-                    .audio
-                    .device_id
-                    .clone()
+                let current = settings_audio
+                    .device_id()
                     .and_then(|d| devices.get(&d))
                     .map(|d| d.name())
                     .unwrap_or(default_label);
@@ -260,11 +258,11 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
                     .selected_text(current)
                     .width(100.0)
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut settings.audio.device_id, None, default_label);
+                        ui.selectable_value(&mut settings_audio.device_id, None, default_label);
                         ui.separator();
                         for device in devices.iter() {
                             ui.selectable_value(
-                                &mut settings.audio.device_id,
+                                &mut settings_audio.device_id,
                                 Some(device.id().clone()),
                                 device.name(),
                             );
@@ -274,18 +272,18 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
     });
 }
 
-fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
+fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Position", |ui| {
         Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
                 ui.add(
-                    DragValue::new(&mut settings.gui.offset.0)
+                    DragValue::new(&mut settings_ui.offset.0)
                         .speed(1.0)
                         .prefix("X: "),
                 );
                 ui.add(
-                    DragValue::new(&mut settings.gui.offset.1)
+                    DragValue::new(&mut settings_ui.offset.1)
                         .speed(1.0)
                         .prefix("Y: "),
                 );
@@ -304,7 +302,7 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
                              text: &str,
                              anchor_val: usize,
                              default_offset: (f32, f32)| {
-                                let is_selected = settings.gui.anchor == anchor_val;
+                                let is_selected = settings_ui.anchor == anchor_val;
                                 let button = Button::new(RichText::new(text).size(16.0))
                                     .min_size(vec2(30.0, 30.0));
 
@@ -317,8 +315,8 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
                                         ui.add(button)
                                     };
                                 if response.clicked() {
-                                    settings.gui.anchor = anchor_val;
-                                    settings.gui.offset = default_offset;
+                                    settings_ui.anchor = anchor_val;
+                                    settings_ui.offset = default_offset;
                                 }
                             };
 
@@ -383,22 +381,22 @@ fn ui_language_searchable_combo(
     ui.data_mut(|d| d.insert_temp(id, search_term));
 }
 
-fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
+fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Appearance", |ui| {
         Grid::new("appearance_grid")
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
                 ui.label("Max Blocks:");
-                ui.add(Slider::new(&mut settings.audio.max_blocks, 1..=10));
+                ui.add(Slider::new(&mut settings_ui.max_blocks, 1..=10));
                 ui.end_row();
 
                 ui.label("Font Size:");
-                ui.add(Slider::new(&mut settings.gui.font_size, 10..=80));
+                ui.add(Slider::new(&mut settings_ui.font_size, 10..=80));
                 ui.end_row();
 
                 ui.label("Always On Top:");
                 ui.add(Checkbox::without_text(
-                    &mut settings.gui.enable_high_priority,
+                    &mut settings_ui.enable_high_priority,
                 ));
                 ui.end_row();
             });
@@ -411,42 +409,42 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
             .show(ui, |ui| {
                 ui.label("Background Color:");
                 ui.horizontal(|ui| {
-                    let color = &mut settings.gui.background_color;
+                    let color = &mut settings_ui.background_color;
                     if ui.color_edit_button_rgba_unmultiplied(color).changed() {
-                        settings.gui.background_color = [color[0], color[1], color[2], color[3]];
+                        settings_ui.background_color = [color[0], color[1], color[2], color[3]];
                     }
                     if ui.button("Clear").clicked() {
-                        settings.gui.background_color = [0.; 4];
+                        settings_ui.background_color = [0.; 4];
                     }
                 });
                 ui.end_row();
 
                 ui.label("Text Color:");
                 ui.horizontal(|ui| {
-                    let color = &mut settings.gui.text_color;
+                    let color = &mut settings_ui.text_color;
                     if ui.color_edit_button_rgb(color).changed() {
-                        settings.gui.text_color = [color[0], color[1], color[2]];
+                        settings_ui.text_color = [color[0], color[1], color[2]];
                     }
                     if ui
                         .button("Clear")
                         .on_hover_text("Reset to Yellow")
                         .clicked()
                     {
-                        settings.gui.text_color = [255., 255., 0.]; // yellow
+                        settings_ui.text_color = [255., 255., 0.]; // yellow
                     }
                 });
                 ui.end_row();
             });
 
         egui::Frame::new()
-            .fill(settings.gui.background_color())
+            .fill(settings_ui.background_color())
             .corner_radius(5.0)
             .inner_margin(8.0)
             .show(ui, |ui| {
                 ui.label(
-                    RichText::new(format!("Preview ({:.0}px)", settings.gui.font_size))
-                        .color(settings.gui.text_color())
-                        .size(settings.gui.font_size as f32),
+                    RichText::new(format!("Preview ({:.0}px)", settings_ui.font_size))
+                        .color(settings_ui.text_color())
+                        .size(settings_ui.font_size as f32),
                 );
             });
     });

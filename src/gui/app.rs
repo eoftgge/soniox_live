@@ -1,7 +1,7 @@
 use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, StateManager};
-use crate::settings::SettingsApp;
+use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
@@ -54,7 +54,7 @@ fn process_events(
 }
 
 pub struct SubtitlesApp {
-    settings: SettingsApp,
+    settings_manager: SettingsManager,
     store: TranscriptionStore,
     toasts: Toasts,
     manager: StateManager,
@@ -64,12 +64,12 @@ pub struct SubtitlesApp {
 }
 
 impl SubtitlesApp {
-    pub fn new(settings: SettingsApp, guard: Option<WorkerGuard>) -> Self {
+    pub fn new(settings_manager: SettingsManager, guard: Option<WorkerGuard>) -> Self {
         Self {
-            store: TranscriptionStore::new(settings.audio.max_blocks),
+            store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
             toasts: Toasts::new(),
             manager: StateManager::new(),
-            settings,
+            settings_manager,
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
             _guard: guard,
@@ -81,7 +81,7 @@ impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         if let Err(err) =
             self.manager
-                .resolve(ui.ctx(), &mut self.store, &self.settings, &self.devices)
+                .resolve(ui.ctx(), &mut self.store, &self.settings_manager.settings, &self.devices)
         {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
@@ -90,7 +90,7 @@ impl App for SubtitlesApp {
         match manager.app_state_mut() {
             AppState::Settings => show_settings_window(
                 ui,
-                &mut self.settings,
+                &mut self.settings_manager,
                 manager,
                 &mut self.toasts,
                 &mut self.devices,
@@ -101,12 +101,13 @@ impl App for SubtitlesApp {
                 self.store.schedule(ui.ctx().clone(), timeout);
 
                 let ctx = ui.ctx();
+                let settings_ui = &self.settings_manager.settings.ui;
                 process_events(service, &mut self.store, &mut self.toasts);
-                if self.settings.gui.enable_high_priority && self.frame_counter >= 100 {
+                if settings_ui.enable_high_priority && self.frame_counter >= 100 {
                     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
                     self.frame_counter = 0;
                 }
-                let (anchor, offset) = self.settings.gui.get_anchor();
+                let (anchor, offset) = settings_ui.get_anchor();
                 Area::new(Id::from("subtitles_area"))
                     .anchor(anchor, offset)
                     .order(Order::Foreground)
@@ -115,9 +116,9 @@ impl App for SubtitlesApp {
                             draw_subtitles(
                                 ui,
                                 &self.store,
-                                self.settings.gui.font_size as f32,
-                                self.settings.gui.text_color(),
-                                self.settings.gui.background_color(),
+                                settings_ui.font_size as f32,
+                                settings_ui.text_color(),
+                                settings_ui.background_color(),
                             );
                         });
                     });

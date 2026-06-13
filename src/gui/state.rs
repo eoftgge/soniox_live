@@ -50,14 +50,14 @@ impl StateManager {
             return Ok(());
         };
 
-        resolved.apply_window_state(ctx, settings.gui.enable_high_priority);
+        resolved.apply_window_state(ctx, settings.ui.enable_high_priority);
         match resolved {
             PendingState::Settings => self.app_state = AppState::Settings,
             PendingState::Overlay => {
                 let ctx = ctx.clone();
                 let service =
                     TranscriptionService::start(settings, devices, move || ctx.request_repaint())?;
-                store.resize(settings.audio.max_blocks);
+                store.resize(settings.ui.max_blocks);
                 self.app_state = AppState::Overlay(service);
             }
         }
