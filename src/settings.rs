@@ -34,9 +34,14 @@ pub struct SettingsProvider {
 }
 
 #[derive(Deserialize, Serialize, Clone)]
-pub struct SettingsApp {
+pub struct SettingsGeneral {
     pub level: TracingLevel,
     pub log_to_file: bool,
+}
+
+#[derive(Default, Deserialize, Serialize, Clone)]
+pub struct SettingsApp {
+    pub general: SettingsGeneral,
     pub(crate) audio: SettingsAudio,
     pub(crate) ui: SettingsUI,
     pub(crate) provider: SettingsProvider,
@@ -71,14 +76,11 @@ impl Default for SettingsAudio {
     }
 }
 
-impl Default for SettingsApp {
+impl Default for SettingsGeneral {
     fn default() -> Self {
         Self {
-            level: TracingLevel::Info,  // todo: take it out to the global
+            level: TracingLevel::Info,
             log_to_file: false,
-            audio: Default::default(),
-            ui: Default::default(),
-            provider: Default::default(),
         }
     }
 }
@@ -92,6 +94,7 @@ impl Default for SettingsProvider {
         }
     }
 }
+
 
 impl SettingsUI {
     pub fn text_color(&self) -> Color32 {
@@ -127,7 +130,7 @@ impl SettingsAudio {
     }
 }
 
-impl SettingsApp {
+impl SettingsGeneral {
     pub fn log_to_file(&self) -> bool {
         self.log_to_file
     }

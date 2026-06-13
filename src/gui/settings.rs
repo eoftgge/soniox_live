@@ -1,8 +1,9 @@
 use crate::gui::state::{PendingState, StateManager};
-use crate::settings::{SettingsAudio, SettingsUI, SettingsManager, SettingsProvider};
+use crate::settings::{SettingsAudio, SettingsUI, SettingsManager, SettingsProvider, SettingsGeneral};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
+use crate::logger::LEVELS;
 use eframe::egui::{
     self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
     TextEdit, Ui, vec2,
@@ -29,7 +30,9 @@ pub fn show_settings_window(
 
             let settings = &mut settings_manager.settings;
             ScrollArea::vertical().show(ui, |ui| {
-                ui_section_app(ui, &mut settings.audio, devices);
+
+                ui_section_general(ui, &mut settings.general);
+                ui_section_audio(ui, &mut settings.audio, devices);
                 ui_section_provider(ui, &mut settings.provider);
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
@@ -100,6 +103,31 @@ fn ui_bottom_panel(
             });
             ui.add_space(10.0);
         });
+}
+
+fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
+    ui.collapsing("General", |ui| {
+        Grid::new("general_grid")
+            .num_columns(2)
+            .spacing([10.0, 10.0])
+            .show(ui, |ui| {
+                ui.label("Log Level:");
+                ComboBox::from_id_salt("log_level")
+                    .selected_text(settings_general.level.to_string())
+                    .width(80.0)
+                    .show_ui(ui, |ui| {
+                        for level in LEVELS {
+                            ui.selectable_value(&mut settings_general.level, *level, level.to_string());
+                        }
+                    });
+                ui.end_row();
+
+                ui.label("Log to file:");
+                ui.add(Checkbox::without_text(&mut settings_general.log_to_file))
+                    .on_hover_text("Save logs to a .log file in the app directory");
+                ui.end_row();
+            });
+    });
 }
 
 fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
@@ -213,7 +241,7 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
         });
 }
 
-fn ui_section_app(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut MappableAvailableDevices) {
+fn ui_section_audio(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut MappableAvailableDevices) {
     ui.collapsing("Configuration App", |ui| {
         Grid::new("app_grid")
             .num_columns(2)
@@ -227,24 +255,7 @@ fn ui_section_app(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut
                 ui.add(Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true));
                 ui.end_row();
 
-                // ui.label("Log Level:");
-                // ComboBox::from_id_salt("log_level")
-                //     .selected_text(settings_audio.level.to_string())
-                //     .width(40.0)
-                //     .show_ui(ui, |ui| {
-                //         for level in LEVELS {
-                //             ui.selectable_value(&mut settings_audio.level, *level, level.to_string());
-                //         }
-                //     });
-                // ui.end_row();
-                //
-                // ui.label("Log to file");
-                // ui.add(Checkbox::without_text(&mut settings_audio.log_to_file))
-                //     .on_hover_text("Allow logs to be added to the file");
-                // ui.end_row();
-
                 ui.label("Output Device:");
-
                 let default_label = "System Default";
                 let current = settings_audio
                     .device_id()

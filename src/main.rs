@@ -12,9 +12,9 @@ const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 fn run() -> Result<(), OmniSttErrors> {
     let settings_manager = SettingsManager::new("omni.toml");
-    let settings = &settings_manager.settings;
-    let level = settings.level();
-    let guard = setup_tracing(level, settings.log_to_file());
+    let settings_general = &settings_manager.settings.general;
+    let level = settings_general.level();
+    let guard = setup_tracing(level, settings_general.log_to_file());
     let app = SubtitlesApp::new(settings_manager, guard);
 
     let native_options = eframe::NativeOptions {
