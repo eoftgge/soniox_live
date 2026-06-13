@@ -25,6 +25,7 @@ embed_plist = "1.2.2"
 async-trait = "0.1.89"
 tokio-util = "0.7.18"
 whisper-rs = "0.16.0"
+rfd = "0.17.2"
 
 [build-dependencies]
 winres = "0.1.12"

@@ -26,7 +26,7 @@ impl TranscriptionService {
         F: Fn() + Send + Sync + 'static,
     {
         let device = devices
-            .to_output_device(settings.device_id.as_ref())
+            .to_output_device(settings.audio.device_id.as_ref())
             .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
 
         let cancel_token = CancellationToken::new();
@@ -44,8 +44,8 @@ impl TranscriptionService {
             rx_audio,
             tx_recycle,
             tx_worker_2,
-            settings.hangover_chunks,
-            settings.vad_threshold,
+            settings.audio.hangover_chunks,
+            settings.audio.vad_threshold,
             provider,
         );
 

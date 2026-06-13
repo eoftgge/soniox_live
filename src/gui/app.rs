@@ -66,7 +66,7 @@ pub struct SubtitlesApp {
 impl SubtitlesApp {
     pub fn new(settings: SettingsApp, guard: Option<WorkerGuard>) -> Self {
         Self {
-            store: TranscriptionStore::new(settings.max_blocks()),
+            store: TranscriptionStore::new(settings.audio.max_blocks),
             toasts: Toasts::new(),
             manager: StateManager::new(),
             settings,
@@ -102,11 +102,11 @@ impl App for SubtitlesApp {
 
                 let ctx = ui.ctx();
                 process_events(service, &mut self.store, &mut self.toasts);
-                if self.settings.enable_high_priority() && self.frame_counter >= 100 {
+                if self.settings.gui.enable_high_priority && self.frame_counter >= 100 {
                     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
                     self.frame_counter = 0;
                 }
-                let (anchor, offset) = self.settings.get_anchor();
+                let (anchor, offset) = self.settings.gui.get_anchor();
                 Area::new(Id::from("subtitles_area"))
                     .anchor(anchor, offset)
                     .order(Order::Foreground)
@@ -115,9 +115,9 @@ impl App for SubtitlesApp {
                             draw_subtitles(
                                 ui,
                                 &self.store,
-                                self.settings.font_size(),
-                                self.settings.text_color(),
-                                self.settings.background_color(),
+                                self.settings.gui.font_size as f32,
+                                self.settings.gui.text_color(),
+                                self.settings.gui.background_color(),
                             );
                         });
                     });

@@ -1,26 +1,27 @@
+use std::sync::Arc;
 use crate::errors::OmniSttErrors;
-use crate::settings::SettingsApp;
 use crate::stt::adapters::soniox::MODEL;
+use crate::stt::adapters::types::SonioxSettings;
 use super::types::{SonioxTranscriptionRequest, SonioxTranslationObject};
 
 pub(crate) fn create_request(
-    settings: &SettingsApp,
+    settings: SonioxSettings,
 ) -> Result<SonioxTranscriptionRequest, OmniSttErrors> {
     let mut request = SonioxTranscriptionRequest {
-        api_key: settings.api_key(),
+        api_key: Arc::from(settings.api_key),
         model: MODEL,
         audio_format: "pcm_s16le",
         sample_rate: Some(16000),
         num_channels: Some(1),
-        context: Some(settings.context()),
-        language_hints: settings.language_hints(),
-        enable_speaker_diarization: Some(settings.enable_speakers()),
+        context: Some(Arc::from(settings.context)),
+        language_hints: Arc::from(settings.language_hints),
+        enable_speaker_diarization: Some(settings.enable_speakers),
         ..Default::default()
     };
     if settings.enable_translate {
         request.translation = Some(SonioxTranslationObject {
             r#type: "one_way",
-            target_language: Some(settings.target_language()),
+            target_language: Some(settings.target_language),
             ..Default::default()
         });
     }

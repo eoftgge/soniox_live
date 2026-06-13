@@ -3,12 +3,11 @@ use crate::settings::SettingsApp;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::stt::languages::LanguageHint;
 use crate::logger::LEVELS;
-use eframe::egui::{
-    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
-    vec2,
-};
+use eframe::egui::{self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2, Color32};
 use egui_notify::Toasts;
 use std::time::Duration;
+use std::path::PathBuf;
+use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -28,7 +27,7 @@ pub fn show_settings_window(
 
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_app(ui, settings, devices);
-                ui_section_api(ui, settings);
+                ui_section_provider(ui, settings);
                 ui_section_position(ui, settings);
                 ui_section_appearance(ui, settings);
                 ui.allocate_space(vec2(0.0, 60.0));
@@ -75,9 +74,19 @@ fn ui_bottom_panel(
                         .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        if settings.api_key.trim().is_empty() {
-                            toasts.warning("No API key provided!").closable(false);
-                            return;
+                        match settings.provider_type {
+                            ProviderType::Soniox => {
+                                if settings.soniox.api_key.trim().is_empty() {
+                                    toasts.warning("No API key provided for Soniox!").closable(false);
+                                    return;
+                                }
+                            }
+                            ProviderType::Whisper => {
+                                if settings.whisper.path.as_os_str().is_empty() {
+                                    toasts.warning("No model path provided for Whisper!").closable(false);
+                                    return;
+                                }
+                            }
                         }
                         manager.switch(PendingState::Overlay);
                         toasts.info("Starting subtitles overlay...").closable(false);
@@ -88,6 +97,103 @@ fn ui_bottom_panel(
         });
 }
 
+fn ui_section_provider(ui: &mut Ui, settings: &mut SettingsApp) {
+    ui.collapsing("Speech Engine (STT)", |ui| {
+        ui.horizontal(|ui| {
+            ui.selectable_value(&mut settings.provider_type, ProviderType::Soniox, "☁ Soniox (Cloud)");
+            ui.selectable_value(&mut settings.provider_type, ProviderType::Whisper, "💻 Whisper (Offline)");
+        });
+
+        ui.separator();
+
+        match settings.provider_type {
+            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings.soniox),
+            ProviderType::Whisper => ui_whisper_settings(ui, &mut settings.whisper),
+        }
+    });
+}
+
+fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings) {
+    Grid::new("soniox_grid")
+        .num_columns(2)
+        .spacing([10.0, 10.0])
+        .show(ui, |ui| {
+            ui.add(egui::Label::new("API Key:").extend());
+            ui.add(TextEdit::singleline(&mut soniox.api_key).password(true));
+            ui.end_row();
+
+            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                ui.label("Languages:");
+            });
+            ui.vertical(|ui| {
+                let mut to_remove = None;
+                for (i, hint) in soniox.language_hints.iter_mut().enumerate() {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{}.", i + 1));
+                        ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
+                        if ui.button("🗑").clicked() {
+                            to_remove = Some(i);
+                        }
+                    });
+                }
+                if let Some(i) = to_remove {
+                    soniox.language_hints.remove(i);
+                }
+                if ui.button("➕ Add").clicked() {
+                    soniox.language_hints.push(LanguageHint::English);
+                }
+            });
+            ui.end_row();
+
+            ui.add(egui::Label::new("Translation:").extend());
+            ui.checkbox(&mut soniox.enable_translate, "Enable");
+
+            if soniox.enable_translate {
+                ui.end_row();
+                ui.add(egui::Label::new("Target language:").extend());
+                ui_language_searchable_combo(ui, "target_lang", &mut soniox.target_language);
+            }
+            ui.end_row();
+
+            ui.add(egui::Label::new("Context:").extend());
+            ui.add(TextEdit::multiline(&mut soniox.context).desired_rows(2));
+            ui.end_row();
+
+            ui.add(egui::Label::new("Options:").extend());
+            ui.checkbox(&mut soniox.enable_speakers, "Enable Speakers ID");
+            ui.end_row();
+        });
+}
+
+fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
+    Grid::new("whisper_grid")
+        .num_columns(2)
+        .spacing([10.0, 10.0])
+        .show(ui, |ui| {
+            ui.add(egui::Label::new("Model File:").extend());
+            ui.horizontal(|ui| {
+                let mut path_str = whisper.path.display().to_string();
+                if ui.add(TextEdit::singleline(&mut path_str).desired_width(200.0)).changed() {
+                    whisper.path = PathBuf::from(path_str);
+                }
+
+                if ui.button("📂 Browse").clicked() {
+                    if let Some(path) = rfd::FileDialog::new()
+                        .add_filter("Whisper Models", &["bin"])
+                        .pick_file()
+                    {
+                        whisper.path = path;
+                    }
+                }
+            });
+            ui.end_row();
+
+            ui.label("");
+            ui.label(RichText::new("Download ggml-*.bin models from HuggingFace").color(Color32::GRAY).small());
+            ui.end_row();
+        });
+}
+
 fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut MappableAvailableDevices) {
     ui.collapsing("Configuration App", |ui| {
         Grid::new("app_grid")
@@ -95,11 +201,11 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
                 ui.label("Hangover Chunks:");
-                ui.add(Slider::new(&mut settings.hangover_chunks, 0..=50));
+                ui.add(Slider::new(&mut settings.audio.hangover_chunks, 0..=50));
                 ui.end_row();
 
                 ui.label("Threshold:");
-                ui.add(Slider::new(&mut settings.vad_threshold, 0..=2000).logarithmic(true));
+                ui.add(Slider::new(&mut settings.audio.vad_threshold, 0..=2000).logarithmic(true));
                 ui.end_row();
 
                 ui.label("Log Level:");
@@ -122,78 +228,26 @@ fn ui_section_app(ui: &mut Ui, settings: &mut SettingsApp, devices: &mut Mappabl
 
                 let default_label = "System Default";
                 let current = settings
-                    .device_id()
-                    .and_then(|d| devices.get(d))
+                    .audio
+                    .device_id
+                    .clone()
+                    .and_then(|d| devices.get(&d))
                     .map(|d| d.name())
                     .unwrap_or(default_label);
                 ComboBox::from_id_salt("selector_device")
                     .selected_text(current)
                     .width(100.0)
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut settings.device_id, None, default_label);
+                        ui.selectable_value(&mut settings.audio.device_id, None, default_label);
                         ui.separator();
                         for device in devices.iter() {
                             ui.selectable_value(
-                                &mut settings.device_id,
+                                &mut settings.audio.device_id,
                                 Some(device.id().clone()),
                                 device.name(),
                             );
                         }
                     });
-            });
-    });
-}
-
-fn ui_section_api(ui: &mut Ui, settings: &mut SettingsApp) {
-    ui.collapsing("API Configuration", |ui| {
-        Grid::new("api_grid")
-            .num_columns(2)
-            .spacing([10.0, 10.0])
-            .show(ui, |ui| {
-                ui.add(egui::Label::new("API Key:").extend());
-                ui.add(TextEdit::singleline(&mut settings.api_key).password(true));
-                ui.end_row();
-
-                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    ui.label("Languages:");
-                });
-                ui.vertical(|ui| {
-                    let mut to_remove = None;
-                    for (i, hint) in settings.language_hints.iter_mut().enumerate() {
-                        ui.horizontal(|ui| {
-                            ui.label(format!("{}.", i + 1));
-                            ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
-                            if ui.button("🗑").clicked() {
-                                to_remove = Some(i);
-                            }
-                        });
-                    }
-                    if let Some(i) = to_remove {
-                        settings.language_hints.remove(i);
-                    }
-                    if ui.button("➕ Add").clicked() {
-                        settings.language_hints.push(LanguageHint::English);
-                    }
-                });
-                ui.end_row();
-
-                ui.add(egui::Label::new("Translation:").extend());
-                ui.checkbox(&mut settings.enable_translate, "Enable");
-
-                if settings.enable_translate {
-                    ui.end_row();
-                    ui.add(egui::Label::new("Target language:").extend());
-                    ui_language_searchable_combo(ui, "target_lang", &mut settings.target_language);
-                }
-                ui.end_row();
-
-                ui.add(egui::Label::new("Context:").extend());
-                ui.add(TextEdit::multiline(&mut settings.context).desired_rows(2));
-                ui.end_row();
-
-                ui.add(egui::Label::new("Options:").extend());
-                ui.checkbox(&mut settings.enable_speakers, "Enable Speakers ID");
-                ui.end_row();
             });
     });
 }
@@ -204,12 +258,12 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
                 ui.add(
-                    DragValue::new(&mut settings.offset.0)
+                    DragValue::new(&mut settings.gui.offset.0)
                         .speed(1.0)
                         .prefix("X: "),
                 );
                 ui.add(
-                    DragValue::new(&mut settings.offset.1)
+                    DragValue::new(&mut settings.gui.offset.1)
                         .speed(1.0)
                         .prefix("Y: "),
                 );
@@ -228,7 +282,7 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
                              text: &str,
                              anchor_val: usize,
                              default_offset: (f32, f32)| {
-                                let is_selected = settings.anchor == anchor_val;
+                                let is_selected = settings.gui.anchor == anchor_val;
                                 let button = Button::new(RichText::new(text).size(16.0))
                                     .min_size(vec2(30.0, 30.0));
 
@@ -241,8 +295,8 @@ fn ui_section_position(ui: &mut Ui, settings: &mut SettingsApp) {
                                         ui.add(button)
                                     };
                                 if response.clicked() {
-                                    settings.anchor = anchor_val;
-                                    settings.offset = default_offset;
+                                    settings.gui.anchor = anchor_val;
+                                    settings.gui.offset = default_offset;
                                 }
                             };
 
@@ -313,15 +367,15 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
                 ui.label("Max Blocks:");
-                ui.add(Slider::new(&mut settings.max_blocks, 1..=10));
+                ui.add(Slider::new(&mut settings.audio.max_blocks, 1..=10));
                 ui.end_row();
 
                 ui.label("Font Size:");
-                ui.add(Slider::new(&mut settings.font_size, 10..=80));
+                ui.add(Slider::new(&mut settings.gui.font_size, 10..=80));
                 ui.end_row();
 
                 ui.label("Always On Top:");
-                ui.add(Checkbox::without_text(&mut settings.enable_high_priority));
+                ui.add(Checkbox::without_text(&mut settings.gui.enable_high_priority));
                 ui.end_row();
             });
 
@@ -333,42 +387,42 @@ fn ui_section_appearance(ui: &mut Ui, settings: &mut SettingsApp) {
             .show(ui, |ui| {
                 ui.label("Background Color:");
                 ui.horizontal(|ui| {
-                    let color = &mut settings.background_color;
+                    let color = &mut settings.gui.background_color;
                     if ui.color_edit_button_rgba_unmultiplied(color).changed() {
-                        settings.background_color = [color[0], color[1], color[2], color[3]];
+                        settings.gui.background_color = [color[0], color[1], color[2], color[3]];
                     }
                     if ui.button("Clear").clicked() {
-                        settings.background_color = [0.; 4];
+                        settings.gui.background_color = [0.; 4];
                     }
                 });
                 ui.end_row();
 
                 ui.label("Text Color:");
                 ui.horizontal(|ui| {
-                    let color = &mut settings.text_color;
+                    let color = &mut settings.gui.text_color;
                     if ui.color_edit_button_rgb(color).changed() {
-                        settings.text_color = [color[0], color[1], color[2]];
+                        settings.gui.text_color = [color[0], color[1], color[2]];
                     }
                     if ui
                         .button("Clear")
                         .on_hover_text("Reset to Yellow")
                         .clicked()
                     {
-                        settings.text_color = [255., 255., 0.]; // yellow
+                        settings.gui.text_color = [255., 255., 0.]; // yellow
                     }
                 });
                 ui.end_row();
             });
 
         egui::Frame::new()
-            .fill(settings.background_color())
+            .fill(settings.gui.background_color())
             .corner_radius(5.0)
             .inner_margin(8.0)
             .show(ui, |ui| {
                 ui.label(
-                    RichText::new(format!("Preview ({:.0}px)", settings.font_size))
-                        .color(settings.text_color())
-                        .size(settings.font_size()),
+                    RichText::new(format!("Preview ({:.0}px)", settings.gui.font_size))
+                        .color(settings.gui.text_color())
+                        .size(settings.gui.font_size as f32),
                 );
             });
     });
