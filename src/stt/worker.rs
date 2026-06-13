@@ -86,9 +86,6 @@ impl GenericSttWorker {
             tokio::select! {
                 audio_opt = self.rx_audio.recv() => {
                     let Some(mut buffer) = audio_opt else { return StreamAction::Stop; };
-                    let avg_volume: i64 = buffer.iter().map(|&s| s.abs() as i64).sum::<i64>() / buffer.len() as i64;
-                    tracing::info!("Current volume: {}", avg_volume);
-
                     if !is_silent(&buffer, self.vad_threshold) {
                         hangover_counter = self.hangover_chunks_limit;
                     } else if hangover_counter > 0 {
@@ -145,7 +142,7 @@ impl GenericSttWorker {
     }
 
     async fn wait_first_packet(&mut self) -> Option<AudioSample> {
-        tracing::debug!("Waiting for speech to connect to Soniox...");
+        tracing::debug!("Waiting for speech to connect...");
 
         loop {
             match self.rx_audio.recv().await {
