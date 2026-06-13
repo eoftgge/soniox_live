@@ -242,8 +242,8 @@ fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
 }
 
 fn ui_section_audio(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut MappableAvailableDevices) {
-    ui.collapsing("Configuration App", |ui| {
-        Grid::new("app_grid")
+    ui.collapsing("Configuration Audio", |ui| {
+        Grid::new("audio_grid")
             .num_columns(2)
             .spacing([10.0, 10.0])
             .show(ui, |ui| {
