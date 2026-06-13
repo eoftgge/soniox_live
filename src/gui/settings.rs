@@ -1,5 +1,5 @@
 use crate::gui::state::{PendingState, StateManager};
-use crate::settings::{SettingsApp, SettingsAudio, SettingsUI, SettingsManager};
+use crate::settings::{SettingsAudio, SettingsUI, SettingsManager, SettingsProvider};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
@@ -30,7 +30,7 @@ pub fn show_settings_window(
             let settings = &mut settings_manager.settings;
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_app(ui, &mut settings.audio, devices);
-                ui_section_provider(ui, settings);
+                ui_section_provider(ui, &mut settings.provider);
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));
@@ -77,16 +77,16 @@ fn ui_bottom_panel(
                         .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        let ref settings = settings_manager.settings;
+                        let settings_provider = &settings_manager.settings.provider;
 
-                        match settings.provider_type {
-                            ProviderType::Soniox if settings.soniox.api_key.trim().is_empty() => {
+                        match settings_provider.active_type {
+                            ProviderType::Soniox if settings_provider.soniox.api_key.trim().is_empty() => {
                                 toasts
                                     .warning("No API key provided for Soniox!")
                                     .closable(false);
                                 return;
                             }
-                            ProviderType::Whisper if settings.whisper.path.as_os_str().is_empty() => {
+                            ProviderType::Whisper if settings_provider.whisper.path.as_os_str().is_empty() => {
                                 toasts
                                     .warning("No model path provided for Whisper!")
                                     .closable(false);
@@ -104,16 +104,16 @@ fn ui_bottom_panel(
         });
 }
 
-fn ui_section_provider(ui: &mut Ui, settings: &mut SettingsApp) {
+fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
     ui.collapsing("Speech Engine (STT)", |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
-                &mut settings.provider_type,
+                &mut settings_provider.active_type,
                 ProviderType::Soniox,
                 "☁ Soniox (Cloud)",
             );
             ui.selectable_value(
-                &mut settings.provider_type,
+                &mut settings_provider.active_type,
                 ProviderType::Whisper,
                 "💻 Whisper (Offline)",
             );
@@ -121,9 +121,9 @@ fn ui_section_provider(ui: &mut Ui, settings: &mut SettingsApp) {
 
         ui.separator();
 
-        match settings.provider_type {
-            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings.soniox),
-            ProviderType::Whisper => ui_whisper_settings(ui, &mut settings.whisper),
+        match settings_provider.active_type {
+            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox),
+            ProviderType::Whisper => ui_whisper_settings(ui, &mut settings_provider.whisper),
         }
     });
 }

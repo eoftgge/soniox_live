@@ -27,14 +27,19 @@ pub struct SettingsAudio {
 }
 
 #[derive(Deserialize, Serialize, Clone)]
+pub struct SettingsProvider {
+    pub(crate) active_type: ProviderType,
+    pub(crate) soniox: SonioxSettings,
+    pub(crate) whisper: WhisperSettings,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
 pub struct SettingsApp {
     pub level: TracingLevel,
     pub log_to_file: bool,
     pub(crate) audio: SettingsAudio,
     pub(crate) ui: SettingsUI,
-    pub(crate) provider_type: ProviderType,
-    pub(crate) soniox: SonioxSettings,
-    pub(crate) whisper: WhisperSettings,
+    pub(crate) provider: SettingsProvider,
 }
 
 pub struct SettingsManager {
@@ -71,11 +76,19 @@ impl Default for SettingsApp {
         Self {
             level: TracingLevel::Info,  // todo: take it out to the global
             log_to_file: false,
-            soniox: Default::default(),
-            whisper: Default::default(),
             audio: Default::default(),
             ui: Default::default(),
-            provider_type: ProviderType::Soniox,
+            provider: Default::default(),
+        }
+    }
+}
+
+impl Default for SettingsProvider {
+    fn default() -> Self {
+        Self {
+            active_type: ProviderType::Soniox,
+            soniox: SonioxSettings::default(),
+            whisper: WhisperSettings::default(),
         }
     }
 }
